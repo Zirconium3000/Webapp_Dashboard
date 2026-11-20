@@ -487,6 +487,14 @@
         tabular-nums;
     }
 
+    .chart-prices {
+      display: inline-block;
+      margin-top: 3px;
+      font-size: 10px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.48);
+    }
+
 
     /* =========================================================
        BALKENBEREICH
@@ -799,6 +807,10 @@
           vs. Vortag
         </span>
 
+        <span id="tradeTime" class="comparison-text trade-time">
+          Datenstand: –
+        </span>
+
       </div>
 
 
@@ -918,6 +930,9 @@ function loadDashboard() {
 
     const comparison = document.getElementById("previousDayDelta");
     comparison.innerText = formatSignedPercent(data.previousDayDelta);
+
+    document.getElementById("tradeTime").innerText =
+      "Datenstand: " + (data.tradeTime || "–");
     setValueColor(comparison, data.previousDayDelta);
 
     renderChart(data.chartData);
@@ -1067,6 +1082,7 @@ function loadDashboard() {
 
                 formatSignedEuro(value) +
                 ' (' + formatSignedPercent(item.percentage / 100) + ')' +
+                '<br><span class="chart-prices">Vortag: ' + formatSignedEuro(item.previousPrice) + ' · Aktuell: ' + formatSignedEuro(item.currentPrice) + '</span>' +
 
               '</div>' +
 
@@ -1344,6 +1360,7 @@ function loadDashboard() {
 </body>
 
 </html>
+
 
 
 

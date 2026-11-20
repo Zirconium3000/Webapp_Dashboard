@@ -901,46 +901,27 @@ function loadDashboard() {
     return;
   }
 
-  const requestId = ++dashboardRequestId;
-  const callbackName = "dashboardJsonpCallback" + requestId;
-  const script = document.createElement("script");
-  const timeout = window.setTimeout(function() {
-    cleanup();
-    showError("Zeitüberschreitung beim Laden der Dashboard-Daten.");
-  }, 15000);
+  fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), { method: "GET", cache: "no-store" })
+    .then(function(response) {
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.json();
+    })
+    .then(function(data) {
+      const intradayElement = document.getElementById("intradayDelta");
+      intradayElement.innerText = formatNumber(data.intradayDelta);
+      setValueColor(intradayElement, data.intradayDelta);
 
-  function cleanup() {
-    window.clearTimeout(timeout);
-    delete window[callbackName];
-    if (script.parentNode) script.parentNode.removeChild(script);
-  }
+      const comparison = document.getElementById("previousDayDelta");
+      comparison.innerText = formatSignedPercent(data.previousDayDelta);
+      setValueColor(comparison, data.previousDayDelta);
+      document.getElementById("intradayTradeTime").innerText = data.tradeTime || "–";
 
-  window[callbackName] = function(data) {
-    cleanup();
-    if (data && data.error) {
-      showError(data.error);
-      return;
-    }
-
-    const intradayElement = document.getElementById("intradayDelta");
-    intradayElement.innerText = formatNumber(data.intradayDelta);
-    setValueColor(intradayElement, data.intradayDelta);
-
-    const comparison = document.getElementById("previousDayDelta");
-    comparison.innerText = formatSignedPercent(data.previousDayDelta);
-    document.getElementById("intradayTradeTime").innerText = data.tradeTime || "–";
-    setValueColor(comparison, data.previousDayDelta);
-
-    renderChart(data.chartData);
-  };
-
-  script.onerror = function() {
-    cleanup();
-    showError("Apps Script konnte nicht erreicht werden. Prüfe URL und Bereitstellung.");
-  };
-
-  script.src = APPS_SCRIPT_URL + "?callback=" + encodeURIComponent(callbackName) + "&t=" + Date.now();
-  document.head.appendChild(script);
+      renderChart(data.chartData);
+    })
+    .catch(function(error) {
+      showError("Daten konnten nicht geladen werden: " + error.message +
+        ". Falls der Browser CORS meldet, ist ein CORS-fähiger Proxy oder JSONP erforderlich.");
+    });
 }
 
     /* =========================================================
@@ -1356,6 +1337,7 @@ function loadDashboard() {
 </body>
 
 </html>
+
 
 
 

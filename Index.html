@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <base target="_top">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <style>
+
+    /* =========================================================
+       BASIS
+       ========================================================= */
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        Arial,
+        sans-serif;
+
+      color: #ffffff;
+
+      background:
+        radial-gradient(
+          circle at 10% 0%,
+          rgba(58, 142, 255, 0.58),
+          transparent 36%
+        ),
+        radial-gradient(
+          circle at 95% 28%,
+          rgba(170, 73, 255, 0.42),
+          transparent 40%
+        ),
+        radial-gradient(
+          circle at 15% 100%,
+          rgba(0, 203, 255, 0.28),
+          transparent 40%
+        ),
+        linear-gradient(
+          150deg,
+          #070a14,
+          #10172b 50%,
+          #070a14
+        );
+
+      background-attachment: fixed;
+
+      overflow-x: hidden;
+    }
+
+
+    /* =========================================================
+       HINTERGRUND
+       ========================================================= */
+
+    .light {
+      position: fixed;
+
+      border-radius: 50%;
+
+      filter: blur(55px);
+
+      pointer-events: none;
+    }
+
+    .light-one {
+      width: 250px;
+      height: 250px;
+
+      top: -100px;
+      right: -80px;
+
+      background:
+        rgba(0, 145, 255, 0.35);
+    }
+
+    .light-two {
+      width: 230px;
+      height: 230px;
+
+      bottom: 5%;
+      left: -100px;
+
+      background:
+        rgba(174, 66, 255, 0.25);
+    }
+
+
+    /* =========================================================
+       APP LAYOUT
+       ========================================================= */
+
+    .app {
+      position: relative;
+
+      width: 100%;
+      max-width: 540px;
+
+      margin: 0 auto;
+
+      padding:
+        max(32px, env(safe-area-inset-top))
+        16px
+        max(35px, env(safe-area-inset-bottom));
+    }
+
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .header {
+      margin:
+        6px
+        5px
+        26px;
+    }
+
+    .header-small {
+      margin-bottom: 7px;
+
+      font-size: 11px;
+      font-weight: 650;
+
+      letter-spacing: 1.6px;
+
+      color:
+        rgba(255,255,255,0.43);
+    }
+
+    .header-title {
+      margin: 0;
+
+      font-size: 34px;
+      font-weight: 700;
+
+      letter-spacing: -1.5px;
+    }
+
+    .header-subtitle {
+      margin-top: 7px;
+
+      font-size: 14px;
+
+      color:
+        rgba(255,255,255,0.48);
+    }
+
+
+    /* =========================================================
+       LIQUID GLASS
+       ========================================================= */
+
+    .glass-card {
+      position: relative;
+
+      overflow: hidden;
+
+      border-radius: 30px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255,255,255,0.18),
+          rgba(255,255,255,0.055)
+        );
+
+      border:
+        1px solid
+        rgba(255,255,255,0.20);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.24),
+        0 22px 50px rgba(0,0,0,0.25);
+
+      backdrop-filter:
+        blur(28px)
+        saturate(160%);
+
+      -webkit-backdrop-filter:
+        blur(28px)
+        saturate(160%);
+    }
+
+
+    .glass-card::before {
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      left: 10%;
+      right: 10%;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255,255,255,0.82),
+          transparent
+        );
+    }
+
+
+    /* =========================================================
+       KACHEL 1
+       INTRADAY DELTA
+       ========================================================= */
+
+    .delta-card {
+      padding: 25px;
+    }
+
+    .card-label {
+      display: flex;
+      align-items: center;
+
+      gap: 8px;
+
+      font-size: 11px;
+      font-weight: 650;
+
+      letter-spacing: 1.1px;
+
+      color:
+        rgba(255,255,255,0.55);
+    }
+
+
+    .indicator {
+      width: 8px;
+      height: 8px;
+
+      flex-shrink: 0;
+
+      border-radius: 50%;
+
+      background: #54f59d;
+
+      box-shadow:
+        0 0 12px
+        rgba(84,245,157,0.80);
+    }
+
+
+    .main-value {
+      display: flex;
+      align-items: baseline;
+
+      gap: 7px;
+
+      margin-top: 25px;
+    }
+
+
+    #intradayDelta {
+      font-size:
+        clamp(49px, 15vw, 76px);
+
+      line-height: 0.95;
+
+      font-weight: 700;
+
+      letter-spacing: -3.5px;
+
+      font-variant-numeric:
+        tabular-nums;
+    }
+
+
+    .currency {
+      font-size: 24px;
+      font-weight: 500;
+
+      color:
+        rgba(255,255,255,0.52);
+    }
+
+
+    /* Vergleich Vortag */
+
+    .comparison {
+      display: flex;
+      align-items: center;
+
+      gap: 8px;
+
+      margin-top: 22px;
+    }
+
+
+    .comparison-value {
+      padding: 7px 11px;
+
+      border-radius: 14px;
+
+      background:
+        rgba(255,255,255,0.10);
+
+      border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+      font-size: 14px;
+      font-weight: 650;
+
+      font-variant-numeric:
+        tabular-nums;
+    }
+
+
+    .comparison-text {
+      font-size: 13px;
+
+      color:
+        rgba(255,255,255,0.43);
+    }
+
+
+    /* =========================================================
+       FARBEN
+       ========================================================= */
+
+    .positive {
+      color: #63f5a7;
+    }
+
+    .negative {
+      color: #ff6b81;
+    }
+
+    .neutral {
+      color:
+        rgba(255,255,255,0.62);
+    }
+
+
+    /* =========================================================
+       CHART CARD
+       ========================================================= */
+
+    .chart-card {
+      margin-top: 17px;
+
+      padding:
+        24px
+        18px
+        22px;
+    }
+
+
+    .chart-header {
+      display: flex;
+
+      justify-content:
+        space-between;
+
+      align-items:
+        flex-start;
+
+      margin:
+        0
+        6px
+        26px;
+    }
+
+
+    .chart-title {
+      margin-top: 7px;
+
+      font-size: 23px;
+      font-weight: 650;
+
+      letter-spacing: -0.6px;
+    }
+
+
+    .chart-unit {
+      width: 35px;
+      height: 35px;
+
+      display: flex;
+
+      justify-content: center;
+      align-items: center;
+
+      border-radius: 50%;
+
+      background:
+        rgba(255,255,255,0.09);
+
+      border:
+        1px solid
+        rgba(255,255,255,0.14);
+
+      color:
+        rgba(255,255,255,0.60);
+
+      font-size: 14px;
+    }
+
+
+    /* =========================================================
+       CHART
+       ========================================================= */
+
+    .performance-chart {
+      width: 100%;
+    }
+
+
+    .chart-row {
+      margin-bottom: 16px;
+    }
+
+
+    .chart-row:last-child {
+      margin-bottom: 0;
+    }
+
+
+    .chart-row-header {
+      display: flex;
+
+      justify-content:
+        space-between;
+
+      align-items: center;
+
+      gap: 10px;
+
+      padding:
+        0
+        3px;
+
+      margin-bottom: 6px;
+    }
+
+
+    .chart-name {
+      flex: 1;
+
+      min-width: 0;
+
+      white-space: nowrap;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+
+      font-size: 12px;
+      font-weight: 500;
+
+      color:
+        rgba(255,255,255,0.68);
+    }
+
+
+    .chart-value {
+      flex-shrink: 0;
+
+      font-size: 12px;
+      font-weight: 650;
+
+      font-variant-numeric:
+        tabular-nums;
+    }
+
+
+    /* =========================================================
+       BALKENBEREICH
+       ========================================================= */
+
+    .bar-area {
+      position: relative;
+
+      width: 100%;
+      height: 12px;
+
+      overflow: hidden;
+
+      border-radius: 7px;
+
+      background:
+        rgba(255,255,255,0.04);
+    }
+
+
+    /* gemeinsame 0-Euro-Linie */
+
+    .zero-line {
+      position: absolute;
+
+      z-index: 3;
+
+      top: 0;
+      bottom: 0;
+
+      left: 50%;
+
+      width: 1px;
+
+      background:
+        rgba(255,255,255,0.30);
+    }
+
+
+    /* Balken */
+
+    .bar {
+      position: absolute;
+
+      top: 2px;
+
+      height: 8px;
+
+      border-radius: 5px;
+    }
+
+
+    /* Positive Werte nach rechts */
+
+    .bar-positive {
+      left: 50%;
+
+      background:
+        linear-gradient(
+          90deg,
+          rgba(58,218,135,0.38),
+          rgba(83,250,162,0.98)
+        );
+
+      box-shadow:
+        0 0 10px
+        rgba(83,250,162,0.22);
+    }
+
+
+    /* Negative Werte nach links */
+
+    .bar-negative {
+      right: 50%;
+
+      background:
+        linear-gradient(
+          90deg,
+          rgba(255,81,105,0.98),
+          rgba(255,81,105,0.38)
+        );
+
+      box-shadow:
+        0 0 10px
+        rgba(255,81,105,0.20);
+    }
+
+
+    /* =========================================================
+       LOADING
+       ========================================================= */
+
+    .chart-loading {
+      padding: 30px 10px;
+
+      text-align: center;
+
+      font-size: 13px;
+
+      color:
+        rgba(255,255,255,0.40);
+    }
+
+
+    /* =========================================================
+       ERROR
+       ========================================================= */
+
+    #error {
+      display: none;
+
+      margin-top: 16px;
+
+      padding:
+        14px
+        16px;
+
+      border-radius: 18px;
+
+      background:
+        rgba(255,65,75,0.14);
+
+      border:
+        1px solid
+        rgba(255,100,110,0.25);
+
+      color: #ffd5d9;
+
+      font-size: 13px;
+    }
+
+
+    /* =========================================================
+       FOOTER
+       ========================================================= */
+
+    .footer {
+      margin-top: 20px;
+
+      text-align: center;
+
+      font-size: 9px;
+
+      font-weight: 600;
+
+      letter-spacing: 1.4px;
+
+      color:
+        rgba(255,255,255,0.23);
+    }
+
+
+    /* =========================================================
+       IPAD
+       ========================================================= */
+
+    @media (min-width: 768px) {
+
+      .app {
+        max-width: 680px;
+
+        padding-top: 60px;
+      }
+
+      .delta-card {
+        padding: 34px;
+      }
+
+      .chart-card {
+        padding:
+          30px
+          28px;
+      }
+
+      #intradayDelta {
+        font-size: 82px;
+      }
+
+      .chart-name,
+      .chart-value {
+        font-size: 13px;
+      }
+
+      .bar-area {
+        height: 14px;
+      }
+
+      .bar {
+        top: 2px;
+        height: 10px;
+      }
+
+      .chart-row {
+        margin-bottom: 18px;
+      }
+
+    }
+
+
+    /* =========================================================
+       KLEINE IPHONES
+       ========================================================= */
+
+    @media (max-width: 380px) {
+
+      .app {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .delta-card {
+        padding: 21px;
+      }
+
+      .chart-card {
+        padding:
+          21px
+          14px;
+      }
+
+      .header-title {
+        font-size: 30px;
+      }
+
+      #intradayDelta {
+        font-size: 48px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- Hintergrund -->
+
+  <div class="light light-one"></div>
+
+  <div class="light light-two"></div>
+
+
+  <main class="app">
+
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <header class="header">
+
+      <div class="header-small">
+        LIVE DASHBOARD
+      </div>
+
+      <h1 class="header-title">
+        Overview
+      </h1>
+
+      <div class="header-subtitle">
+        Aktuelle Werte aus Google Sheets
+      </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         INTRADAY DELTA
+         ===================================================== -->
+
+    <section class="glass-card delta-card">
+
+
+      <div class="card-label">
+
+        <span class="indicator"></span>
+
+        INTRADAY DELTA (HEUTE)
+
+      </div>
+
+
+      <div class="main-value">
+
+        <span id="intradayDelta">
+          –
+        </span>
+
+        <span class="currency">
+          €
+        </span>
+
+      </div>
+
+
+      <div class="comparison">
+
+        <span
+          id="previousDayDelta"
+          class="comparison-value neutral">
+
+          –
+
+        </span>
+
+        <span class="comparison-text">
+          vs. Vortag
+        </span>
+
+      </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================================
+         PERFORMANCE GRAPH
+         ===================================================== -->
+
+    <section class="glass-card chart-card">
+
+
+      <div class="chart-header">
+
+
+        <div>
+
+          <div class="card-label">
+            PERFORMANCE
+          </div>
+
+          <div class="chart-title">
+            Intraday Delta
+          </div>
+
+        </div>
+
+
+        <div class="chart-unit">
+          €
+        </div>
+
+
+      </div>
+
+
+      <div
+        id="performanceChart"
+        class="performance-chart">
+
+        <div class="chart-loading">
+          Daten werden geladen...
+        </div>
+
+      </div>
+
+
+    </section>
+
+
+
+    <!-- =====================================================
+         FEHLER
+         ===================================================== -->
+
+    <div id="error"></div>
+
+
+
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+
+    <div class="footer">
+      GOOGLE SHEETS · LIVE DATA
+    </div>
+
+
+  </main>
+
+
+
+  <script>
+
+
+    /* =========================================================
+       DASHBOARD LADEN
+       ========================================================= */
+
+    function loadDashboard() {
+
+      hideError();
+
+
+      google.script.run
+
+
+        .withSuccessHandler(function(data) {
+
+
+          /* Hauptwert */
+
+          var intradayElement =
+            document.getElementById("intradayDelta");
+
+          intradayElement.innerText =
+            formatNumber(
+              data.intradayDelta
+            );
+
+          setValueColor(
+            intradayElement,
+            data.intradayDelta
+          );
+
+
+          /* Vortagesvergleich */
+
+          var comparison =
+            document.getElementById(
+              "previousDayDelta"
+            );
+
+
+          comparison.innerText =
+            formatSignedPercent(
+              data.previousDayDelta
+            );
+
+
+          setValueColor(
+            comparison,
+            data.previousDayDelta
+          );
+
+
+          /* Chart erzeugen */
+
+          renderChart(
+            data.chartData
+          );
+
+
+        })
+
+
+        .withFailureHandler(function(error) {
+
+          showError(
+            error.message
+          );
+
+        })
+
+
+        .getDashboardData();
+
+    }
+
+
+
+    /* =========================================================
+       CHART
+       ========================================================= */
+
+    function renderChart(data) {
+
+
+      var chart =
+        document.getElementById(
+          "performanceChart"
+        );
+
+
+      if (!data || data.length === 0) {
+
+        chart.innerHTML =
+          '<div class="chart-loading">' +
+          'Keine Daten vorhanden' +
+          '</div>';
+
+        return;
+
+      }
+
+
+      /* -----------------------------------------
+         Maximalwert bestimmen
+         ----------------------------------------- */
+
+      var maxValue = 0;
+
+
+      data.forEach(function(item) {
+
+        var value =
+          Math.abs(
+            Number(item.value) || 0
+          );
+
+
+        if (value > maxValue) {
+
+          maxValue = value;
+
+        }
+
+      });
+
+
+      if (maxValue === 0) {
+
+        maxValue = 1;
+
+      }
+
+
+      /* -----------------------------------------
+         Zeilen erzeugen
+         ----------------------------------------- */
+
+      var html = "";
+
+
+      data.forEach(function(item) {
+
+
+        var value =
+          Number(item.value) || 0;
+
+
+        var name =
+          item.name || "";
+
+
+        /*
+         * Jede Seite der Nulllinie
+         * besitzt 50 % der Breite.
+         */
+
+        var barWidth =
+          (
+            Math.abs(value)
+            /
+            maxValue
+          ) * 50;
+
+
+        var barClass = "";
+
+        var valueClass =
+          "neutral";
+
+
+        if (value > 0) {
+
+          barClass =
+            "bar bar-positive";
+
+          valueClass =
+            "positive";
+
+        }
+
+        else if (value < 0) {
+
+          barClass =
+            "bar bar-negative";
+
+          valueClass =
+            "negative";
+
+        }
+
+
+        html +=
+
+          '<div class="chart-row">' +
+
+
+            '<div class="chart-row-header">' +
+
+
+              '<div class="chart-name">' +
+
+                escapeHtml(name) +
+
+              '</div>' +
+
+
+              '<div class="chart-value ' +
+                valueClass +
+              '">' +
+
+                formatSignedEuro(value) +
+                ' (' + formatSignedPercent(item.percentage / 100) + ')' +
+
+              '</div>' +
+
+
+            '</div>' +
+
+
+            '<div class="bar-area">' +
+
+
+              '<div class="zero-line"></div>';
+
+
+        if (value !== 0) {
+
+          html +=
+
+            '<div class="' +
+              barClass +
+            '" style="width:' +
+              barWidth +
+            '%;"></div>';
+
+        }
+
+
+        html +=
+
+            '</div>' +
+
+          '</div>';
+
+      });
+
+
+      chart.innerHTML = html;
+
+    }
+
+
+
+    /* =========================================================
+       ZAHLENFORMATIERUNG
+       ========================================================= */
+
+    function formatNumber(value) {
+
+      value =
+        Number(value) || 0;
+
+
+      return new Intl.NumberFormat(
+        "de-AT",
+        {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }
+      ).format(value);
+
+    }
+
+
+
+    function formatSignedPercent(value) {
+
+      value =
+        (Number(value) || 0) * 100;
+
+      var formatted =
+        new Intl.NumberFormat(
+          "de-AT",
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }
+        )
+        .format(
+          Math.abs(value)
+        );
+
+      if (value > 0) {
+
+        return "+" +
+          formatted +
+          " %";
+
+      }
+
+      if (value < 0) {
+
+        return "-" +
+          formatted +
+          " %";
+
+      }
+
+      return formatted + " %";
+
+    }
+
+    function formatSignedEuro(value) {
+
+      value =
+        Number(value) || 0;
+
+
+      var formatted =
+        new Intl.NumberFormat(
+          "de-AT",
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }
+        )
+        .format(
+          Math.abs(value)
+        );
+
+
+      if (value > 0) {
+
+        return "+" +
+          formatted +
+          " €";
+
+      }
+
+
+      if (value < 0) {
+
+        return "-" +
+          formatted +
+          " €";
+
+      }
+
+
+      return formatted + " €";
+
+    }
+
+
+
+    /* =========================================================
+       FARBCODIERUNG
+       ========================================================= */
+
+    function setValueColor(
+      element,
+      value
+    ) {
+
+
+      element.classList.remove(
+        "positive",
+        "negative",
+        "neutral"
+      );
+
+
+      if (value > 0) {
+
+        element.classList.add(
+          "positive"
+        );
+
+      }
+
+      else if (value < 0) {
+
+        element.classList.add(
+          "negative"
+        );
+
+      }
+
+      else {
+
+        element.classList.add(
+          "neutral"
+        );
+
+      }
+
+    }
+
+
+
+    /* =========================================================
+       HTML SICHER AUSGEBEN
+       ========================================================= */
+
+    function escapeHtml(text) {
+
+      return String(text)
+
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+
+        .replace(
+          /</g,
+          "&lt;"
+        )
+
+        .replace(
+          />/g,
+          "&gt;"
+        )
+
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+
+
+    /* =========================================================
+       FEHLER
+       ========================================================= */
+
+    function showError(message) {
+
+      var errorElement =
+        document.getElementById(
+          "error"
+        );
+
+
+      errorElement.style.display =
+        "block";
+
+
+      errorElement.innerText =
+        "Fehler beim Laden: " +
+        message;
+
+    }
+
+
+
+    function hideError() {
+
+      document
+        .getElementById("error")
+        .style.display =
+          "none";
+
+    }
+
+
+
+    /* =========================================================
+       START
+       ========================================================= */
+        loadDashboard();
+
+        window.setInterval(function() {
+          if (!document.hidden) {
+            loadDashboard();
+          }
+        }, 10000);
+
+  </script>
+
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+

@@ -1082,7 +1082,7 @@ function loadDashboard() {
 
                 formatSignedEuro(value) +
                 ' (' + formatSignedPercent(item.percentage / 100) + ')' +
-                '<br><span class="chart-prices">Vortag: ' + formatSignedEuro(item.previousPrice) + ' · Aktuell: ' + formatSignedEuro(item.currentPrice) + '</span>' +
+                '<br><span class="chart-prices">Vortag: ' + formatNumber(item.previousPrice) + ' €' + ' · Aktuell: ' + formatNumber(item.currentPrice) + ' €' + '</span>' +
 
               '</div>' +
 
@@ -1360,6 +1360,7 @@ function loadDashboard() {
 </body>
 
 </html>
+
 
 
 

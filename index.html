@@ -807,10 +807,6 @@
           vs. Vortag
         </span>
 
-        <span id="tradeTime" class="comparison-text trade-time">
-          Datenstand: –
-        </span>
-
       </div>
 
 
@@ -930,9 +926,6 @@ function loadDashboard() {
 
     const comparison = document.getElementById("previousDayDelta");
     comparison.innerText = formatSignedPercent(data.previousDayDelta);
-
-    document.getElementById("tradeTime").innerText =
-      "Datenstand: " + (data.tradeTime || "–");
     document.getElementById("intradayTradeTime").innerText = data.tradeTime || "–";
     setValueColor(comparison, data.previousDayDelta);
 
@@ -1361,6 +1354,7 @@ function loadDashboard() {
 </body>
 
 </html>
+
 
 
 

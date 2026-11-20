@@ -775,7 +775,7 @@
 
         <span class="indicator"></span>
 
-        INTRADAY DELTA (HEUTE)
+        INTRADAY DELTA (HEUTE, <span id="intradayTradeTime">–</span>)
 
       </div>
 
@@ -933,6 +933,7 @@ function loadDashboard() {
 
     document.getElementById("tradeTime").innerText =
       "Datenstand: " + (data.tradeTime || "–");
+    document.getElementById("intradayTradeTime").innerText = data.tradeTime || "–";
     setValueColor(comparison, data.previousDayDelta);
 
     renderChart(data.chartData);
@@ -1360,6 +1361,8 @@ function loadDashboard() {
 </body>
 
 </html>
+
+
 
 
 

@@ -880,87 +880,57 @@
        DASHBOARD LADEN
        ========================================================= */
 
-    function loadDashboard() {
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmNNAJbM87_fuN2IBixqvKOC4NHGqMXbV9IfPbQfG2n7gu-bLVSwGj0oupKT-MbkVwkw/exec";
+let dashboardRequestId = 0;
 
-      hideError();
+function loadDashboard() {
+  hideError();
 
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("/exec") === -1) {
+    showError("Bitte trage die Apps-Script-Web-App-URL in APPS_SCRIPT_URL ein.");
+    return;
+  }
 
-       const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqS_JP7I7sXz8WydwOYatJamUWGpaX28xzehjcGi6YKhW9lCOLaFiAOhtlK64gajbP/exec";
+  const requestId = ++dashboardRequestId;
+  const callbackName = "dashboardJsonpCallback" + requestId;
+  const script = document.createElement("script");
+  const timeout = window.setTimeout(function() {
+    cleanup();
+    showError("Zeitüberschreitung beim Laden der Dashboard-Daten.");
+  }, 15000);
 
-    // Daten abrufen (ersetzt google.script.run)
-    fetch(SCRIPT_URL)
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById("ausgabe").innerText = data.nachricht;
-      })
-      .catch(err => {
-        document.getElementById("ausgabe").innerText = "Fehler: " + err;
-      });
+  function cleanup() {
+    window.clearTimeout(timeout);
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+  }
 
-
-        .withSuccessHandler(function(data) {
-
-
-          /* Hauptwert */
-
-          var intradayElement =
-            document.getElementById("intradayDelta");
-
-          intradayElement.innerText =
-            formatNumber(
-              data.intradayDelta
-            );
-
-          setValueColor(
-            intradayElement,
-            data.intradayDelta
-          );
-
-
-          /* Vortagesvergleich */
-
-          var comparison =
-            document.getElementById(
-              "previousDayDelta"
-            );
-
-
-          comparison.innerText =
-            formatSignedPercent(
-              data.previousDayDelta
-            );
-
-
-          setValueColor(
-            comparison,
-            data.previousDayDelta
-          );
-
-
-          /* Chart erzeugen */
-
-          renderChart(
-            data.chartData
-          );
-
-
-        })
-
-
-        .withFailureHandler(function(error) {
-
-          showError(
-            error.message
-          );
-
-        })
-
-
-        .getDashboardData();
-
+  window[callbackName] = function(data) {
+    cleanup();
+    if (data && data.error) {
+      showError(data.error);
+      return;
     }
 
+    const intradayElement = document.getElementById("intradayDelta");
+    intradayElement.innerText = formatNumber(data.intradayDelta);
+    setValueColor(intradayElement, data.intradayDelta);
 
+    const comparison = document.getElementById("previousDayDelta");
+    comparison.innerText = formatSignedPercent(data.previousDayDelta);
+    setValueColor(comparison, data.previousDayDelta);
+
+    renderChart(data.chartData);
+  };
+
+  script.onerror = function() {
+    cleanup();
+    showError("Apps Script konnte nicht erreicht werden. Prüfe URL und Bereitstellung.");
+  };
+
+  script.src = APPS_SCRIPT_URL + "?callback=" + encodeURIComponent(callbackName) + "&t=" + Date.now();
+  document.head.appendChild(script);
+}
 
     /* =========================================================
        CHART
@@ -1374,6 +1344,7 @@
 </body>
 
 </html>
+
 
 
 

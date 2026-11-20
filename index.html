@@ -885,7 +885,17 @@
       hideError();
 
 
-      google.script.run
+       const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzqS_JP7I7sXz8WydwOYatJamUWGpaX28xzehjcGi6YKhW9lCOLaFiAOhtlK64gajbP/exec";
+
+    // Daten abrufen (ersetzt google.script.run)
+    fetch(SCRIPT_URL)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("ausgabe").innerText = data.nachricht;
+      })
+      .catch(err => {
+        document.getElementById("ausgabe").innerText = "Fehler: " + err;
+      });
 
 
         .withSuccessHandler(function(data) {

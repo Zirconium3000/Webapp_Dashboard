@@ -901,12 +901,17 @@ function loadDashboard() {
     return;
   }
 
-  fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), { method: "GET", cache: "no-store" })
+  fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), {
+    method: "GET",
+    cache: "no-store"
+  })
     .then(function(response) {
       if (!response.ok) throw new Error("HTTP " + response.status);
       return response.json();
     })
     .then(function(data) {
+      if (data.error) throw new Error(data.error);
+
       const intradayElement = document.getElementById("intradayDelta");
       intradayElement.innerText = formatNumber(data.intradayDelta);
       setValueColor(intradayElement, data.intradayDelta);
@@ -919,8 +924,7 @@ function loadDashboard() {
       renderChart(data.chartData);
     })
     .catch(function(error) {
-      showError("Daten konnten nicht geladen werden: " + error.message +
-        ". Falls der Browser CORS meldet, ist ein CORS-fähiger Proxy oder JSONP erforderlich.");
+      showError("Daten konnten nicht geladen werden: " + error.message);
     });
 }
 
@@ -1337,6 +1341,8 @@ function loadDashboard() {
 </body>
 
 </html>
+
+
 
 
 

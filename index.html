@@ -821,6 +821,17 @@
     .portfolio-total-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
     .portfolio-total-percent { margin-left: auto; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
     .portfolio-row { margin-bottom: 16px; }
+    .ytd-pie-layout { display: flex; align-items: center; justify-content: center; gap: 24px; padding: 8px 0; }
+    .ytd-donut { width: 150px; height: 150px; flex: 0 0 150px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,0.12); }
+    .ytd-donut-center { width: 92px; height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; background: #11182a; color: #fff; font-size: 16px; font-weight: 700; }
+    .ytd-donut-center small { margin-top: 3px; color: rgba(255,255,255,0.45); font-size: 9px; font-weight: 500; }
+    .ytd-pie-legend { display: flex; flex: 1; flex-direction: column; gap: 10px; min-width: 0; max-height: 250px; overflow-y: auto; }
+    .ytd-legend-item { display: flex; align-items: flex-start; gap: 9px; color: rgba(255,255,255,0.68); font-size: 12px; }
+    .ytd-legend-item strong { display: block; margin-top: 3px; color: #fff; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .ytd-legend-dot { width: 9px; height: 9px; flex: 0 0 9px; margin-top: 3px; border-radius: 50%; }
+    .positive-dot { background: #63f5a7; box-shadow: 0 0 8px rgba(99,245,167,0.45); }
+    .negative-dot { background: #ff6b81; box-shadow: 0 0 8px rgba(255,107,129,0.45); }
+    @media (max-width: 380px) { .ytd-pie-layout { gap: 16px; } .ytd-donut { width: 125px; height: 125px; flex-basis: 125px; } .ytd-donut-center { width: 78px; height: 78px; } }
 </style>
 
 </head>
@@ -906,7 +917,7 @@
       </div>
 
       <div class="weekly-summary">
-        <div class="card-label">WOCHENPERFORMANCE</div>
+        <div class="card-label"><span class="indicator"></span>WOCHENPERFORMANCE</div>
         <div class="weekly-summary-values">
           <div class="weekly-main-value">
             <span id="weekPerformance" class="secondary-value">–</span>
@@ -969,7 +980,7 @@
     </section>
     <section class="glass-card chart-card portfolio-card">
       <div class="chart-header">
-        <div><div class="card-label">PERFORMANCE</div><div class="chart-title">YTD</div></div>
+        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">YTD</div></div>
         <div class="chart-unit">€</div>
       </div>
       <div class="portfolio-total">
@@ -979,10 +990,22 @@
       </div>
       <div id="ytdChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
     </section>
+    <section class="glass-card chart-card portfolio-card">
+      <div class="chart-header">
+        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE YTD</div><div class="chart-title">Positive / Negativ</div></div>
+        <div class="chart-unit">%</div>
+      </div>
+      <div class="ytd-pie-layout">
+        <div id="ytdSignPie" class="ytd-donut">
+          <div class="ytd-donut-center"><span>YTD</span><small>Verteilung</small></div>
+        </div>
+        <div id="ytdPieLegend" class="ytd-pie-legend"></div>
+      </div>
+    </section>
 
     <section class="glass-card chart-card portfolio-card">
       <div class="chart-header">
-        <div><div class="card-label">PERFORMANCE</div><div class="chart-title">Gesamt</div></div>
+        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Gesamt</div></div>
         <div class="chart-unit">€</div>
       </div>
       <div class="portfolio-total">
@@ -1058,6 +1081,7 @@ function loadDashboard() {
       updatePortfolioTotal("ytdTotal", "ytdTotalPercentage", data.ytdTotal, data.ytdTotalPercentage);
       updatePortfolioTotal("totalPortfolio", "totalPortfolioPercentage", data.totalPortfolio, data.totalPortfolioPercentage);
       renderPerformanceBreakdown("ytdChart", data.ytdData);
+      renderYtdSignPie(data.ytdData);
       renderPerformanceBreakdown("totalChart", data.totalData);
       renderCombinedChart(data.chartData, data.weeklyData);
     })
@@ -1303,6 +1327,46 @@ function loadDashboard() {
   setValueColor(percentElement, percent);
 }
 
+function renderYtdSignPie(data) {
+  const pie = document.getElementById("ytdSignPie");
+  const legend = document.getElementById("ytdPieLegend");
+  const positiveColors = ["#63f5a7", "#3bd68d", "#2fb878", "#8af7bd", "#22a86d"];
+  const negativeColors = ["#ff6b81", "#e94e68", "#c94058", "#ff91a0", "#ac3449"];
+  const entries = (data || []).map(function(item, index) {
+    const value = Number(item.value) || 0;
+    return { name: item.name || ("Position " + (index + 1)), value: value, amount: Math.abs(value), index: index };
+  }).filter(function(item) { return item.amount > 0; });
+
+  const total = entries.reduce(function(sum, item) { return sum + item.amount; }, 0);
+  if (!total) {
+    pie.style.background = "rgba(255,255,255,0.12)";
+    legend.innerHTML = '<div class="chart-loading">Keine YTD-Einzelwerte vorhanden</div>';
+    return;
+  }
+
+  let cursor = 0;
+  const stops = [];
+  let legendHtml = "";
+  entries.forEach(function(item) {
+    const share = item.amount / total * 100;
+    const end = cursor + share;
+    const palette = item.value >= 0 ? positiveColors : negativeColors;
+    const color = palette[item.index % palette.length];
+    stops.push(color + " " + cursor + "% " + end + "%");
+    legendHtml += '<div class="ytd-legend-item">' +
+      '<span class="ytd-legend-dot" style="background:' + color + '"></span>' +
+      '<div><div>' + escapeHtml(item.name) + '</div><strong>' +
+        formatSignedEuro(item.value) + ' · ' + formatShare(share) +
+      '</strong></div></div>';
+    cursor = end;
+  });
+
+  pie.style.background = "conic-gradient(" + stops.join(",") + ")";
+  legend.innerHTML = legendHtml;
+}
+function formatShare(value) {
+  return new Intl.NumberFormat("de-AT", { maximumFractionDigits: 1 }).format(value) + " %";
+}
 function renderPerformanceBreakdown(containerId, data) {
   const chart = document.getElementById(containerId);
   if (!data || !data.length) {
@@ -1581,6 +1645,10 @@ function hideError() {
 </body>
 
 </html>
+
+
+
+
 
 
 

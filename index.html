@@ -930,11 +930,12 @@
         <div>
 
           <div class="card-label">
+            <span class="indicator"></span>
             PERFORMANCE
           </div>
 
           <div class="chart-title">
-            Intraday Delta · 1 Woche
+            Intraday Delta · Woche
           </div>
 
         </div>
@@ -1264,15 +1265,16 @@ function loadDashboard() {
   const weeklyByName = {};
   (weeklyData || []).forEach(function(w, i) { weeklyByName[w.name || String(i)] = w; });
   let max = 0;
-  (intradayData || []).forEach(function(x) { max = Math.max(max, Math.abs(Number(x.value) || 0)); });
-  (weeklyData || []).forEach(function(x) { max = Math.max(max, Math.abs(Number(x.performance) || 0)); });
+  (intradayData || []).forEach(function(x) { max = Math.max(max, Math.abs(Number(x.percentage) || 0)); });
+  (weeklyData || []).forEach(function(x) { max = Math.max(max, Math.abs(Number(x.percentage) || 0)); });
   if (!max) max = 1;
   function renderPeriod(label, value, pct, prevLabel, prev, current) {
     const v = Number(value) || 0;
     const cls = v > 0 ? "positive" : v < 0 ? "negative" : "neutral";
-    const bcls = v > 0 ? "bar bar-positive" : "bar bar-negative";
+    const barValue = Number(pct) || 0;
+    const bcls = barValue > 0 ? "bar bar-positive" : "bar bar-negative";
     const bar = '<div class="bar-area"><div class="zero-line"></div>' +
-      (v ? '<div class="' + bcls + '" style="width:' + Math.abs(v) / max * 50 + '%;"></div>' : '') + '</div>';
+      (barValue ? '<div class="' + bcls + '" style="width:' + Math.abs(barValue) / max * 50 + '%;"></div>' : '') + '</div>';
     return '<div class="combined-period"><div class="combined-period-header">' +
       '<span class="combined-period-label">' + label + '</span>' +
       '<span class="combined-period-values ' + cls + '">' + formatSignedEuro(v) +
@@ -1288,7 +1290,7 @@ function loadDashboard() {
     const w = weeklyByName[x.name || String(i)] || weeklyData[i] || {};
     html += '<div class="combined-stock-row"><div class="combined-stock-name">' + escapeHtml(x.name || "") + '</div>' +
       renderPeriod("Intraday", x.value, x.percentage, "Vortag", x.previousPrice, x.currentPrice) +
-      renderPeriod("Letzte Woche", w.performance, w.percentage, "Freitag", w.previousPrice, w.currentPrice) + '</div>';
+      renderPeriod("Woche", w.performance, w.percentage, "Freitag", w.previousPrice, w.currentPrice) + '</div>';
   });
   chart.innerHTML = html;
 }
@@ -1512,6 +1514,11 @@ function hideError() {
 </body>
 
 </html>
+
+
+
+
+
 
 
 

@@ -821,18 +821,25 @@
     .portfolio-total-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
     .portfolio-total-percent { margin-left: auto; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
     .portfolio-row { margin-bottom: 16px; }
-    .ytd-pie-layout { display: flex; align-items: center; justify-content: center; gap: 24px; padding: 8px 0; }
-    .ytd-donut { width: 150px; height: 150px; flex: 0 0 150px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,0.12); }
-    .ytd-donut-center { width: 92px; height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 50%; background: #11182a; color: #fff; font-size: 16px; font-weight: 700; }
-    .ytd-donut-center small { margin-top: 3px; color: rgba(255,255,255,0.45); font-size: 9px; font-weight: 500; }
-    .ytd-pie-legend { display: flex; flex: 1; flex-direction: column; gap: 10px; min-width: 0; max-height: 250px; overflow-y: auto; }
-    .ytd-legend-item { display: flex; align-items: flex-start; gap: 9px; color: rgba(255,255,255,0.68); font-size: 12px; }
-    .ytd-legend-item strong { display: block; margin-top: 3px; color: #fff; font-size: 12px; font-variant-numeric: tabular-nums; }
-    .ytd-legend-dot { width: 9px; height: 9px; flex: 0 0 9px; margin-top: 3px; border-radius: 50%; }
-    .positive-dot { background: #63f5a7; box-shadow: 0 0 8px rgba(99,245,167,0.45); }
-    .negative-dot { background: #ff6b81; box-shadow: 0 0 8px rgba(255,107,129,0.45); }
-    @media (max-width: 380px) { .ytd-pie-layout { gap: 16px; } .ytd-donut { width: 125px; height: 125px; flex-basis: 125px; } .ytd-donut-center { width: 78px; height: 78px; } }
-</style>
+    .ytd-pie-layout { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 8px 0; }
+    .ytd-donut { position: relative; width: 220px; height: 220px; flex: 0 0 220px; }
+    .ytd-donut svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    .ytd-donut-slice { cursor: pointer; stroke: rgba(12,17,29,0.88); stroke-width: 1.5; transition: transform 140ms ease, opacity 120ms ease, filter 120ms ease; }
+    .ytd-donut-slice:hover, .ytd-donut-slice:focus, .ytd-donut-slice.is-selected { opacity: 1; filter: brightness(1.2); outline: none; }
+    .ytd-donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 126px; height: 126px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; border-radius: 50%; background: #11182a; color: #fff; text-align: center; pointer-events: none; }
+    .ytd-donut-center span { color: rgba(255,255,255,0.52); font-size: 10px; }
+    .ytd-donut-center strong { margin-top: 4px; font-size: 16px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .ytd-donut-center small { margin-top: 4px; color: rgba(255,255,255,0.72); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .ytd-selected-value { min-height: 44px; width: 100%; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.74); text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .ytd-selected-value strong, .ytd-selected-value span { display: block; }
+    .ytd-selected-value strong { color: #fff; margin-bottom: 3px; }
+    .ytd-pie-legend { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px 12px; width: 100%; max-height: 240px; overflow-y: auto; }
+    .ytd-legend-item { display: flex; align-items: flex-start; gap: 8px; min-width: 0; padding: 6px 4px; border: 0; border-radius: 8px; background: transparent; color: rgba(255,255,255,0.72); text-align: left; font: inherit; font-size: 11px; cursor: pointer; }
+    .ytd-legend-item:hover, .ytd-legend-item:focus, .ytd-legend-item.is-selected { background: rgba(255,255,255,0.10); outline: none; }
+    .ytd-legend-copy { min-width: 0; overflow-wrap: anywhere; }
+    .ytd-legend-copy strong { display: block; margin-top: 3px; color: #fff; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .ytd-legend-dot { width: 10px; height: 10px; flex: 0 0 10px; margin-top: 3px; border-radius: 50%; }
+    @media (max-width: 380px) { .ytd-donut { width: 200px; height: 200px; flex-basis: 200px; } .ytd-donut-center { width: 116px; height: 116px; } .ytd-pie-legend { grid-template-columns: 1fr; } }</style>
 
 </head>
 
@@ -997,11 +1004,16 @@
       </div>
       <div class="ytd-pie-layout">
         <div id="ytdSignPie" class="ytd-donut">
-          <div class="ytd-donut-center"><span>YTD</span><small>Verteilung</small></div>
+          <svg id="ytdDonutSvg" viewBox="0 0 240 240" role="img" aria-label="YTD-Verteilung"></svg>
+          <div class="ytd-donut-center">
+            <span>YTD Gesamt</span>
+            <strong id="ytdDonutTotal">–</strong>
+            <small id="ytdDonutPercent">–</small>
+          </div>
         </div>
+        <div id="ytdSelectedValue" class="ytd-selected-value" aria-live="polite">Segment antippen für Einzelwerte</div>
         <div id="ytdPieLegend" class="ytd-pie-legend"></div>
-      </div>
-    </section>
+      </div></section>
 
     <section class="glass-card chart-card portfolio-card">
       <div class="chart-header">
@@ -1081,7 +1093,7 @@ function loadDashboard() {
       updatePortfolioTotal("ytdTotal", "ytdTotalPercentage", data.ytdTotal, data.ytdTotalPercentage);
       updatePortfolioTotal("totalPortfolio", "totalPortfolioPercentage", data.totalPortfolio, data.totalPortfolioPercentage);
       renderPerformanceBreakdown("ytdChart", data.ytdData);
-      renderYtdSignPie(data.ytdData);
+      renderYtdSignPie(data.ytdData, data.ytdTotal, data.ytdTotalPercentage);
       renderPerformanceBreakdown("totalChart", data.totalData);
       renderCombinedChart(data.chartData, data.weeklyData);
     })
@@ -1327,42 +1339,107 @@ function loadDashboard() {
   setValueColor(percentElement, percent);
 }
 
-function renderYtdSignPie(data) {
-  const pie = document.getElementById("ytdSignPie");
+function renderYtdSignPie(data, totalValue, totalPercentage) {
+  const svg = document.getElementById("ytdDonutSvg");
   const legend = document.getElementById("ytdPieLegend");
-  const positiveColors = ["#63f5a7", "#3bd68d", "#2fb878", "#8af7bd", "#22a86d"];
-  const negativeColors = ["#ff6b81", "#e94e68", "#c94058", "#ff91a0", "#ac3449"];
+  const selected = document.getElementById("ytdSelectedValue");
+  document.getElementById("ytdDonutTotal").innerText = formatSignedEuro(totalValue);
+  const totalPercentElement = document.getElementById("ytdDonutPercent");
+  totalPercentElement.innerText = formatSignedPercent(Number(totalPercentage) || 0);
+
+  const green = ["#63f5a7", "#3bd68d", "#2fb878", "#8af7bd", "#22a86d"];
+  const red = ["#ff6b81", "#e94e68", "#c94058", "#ff91a0", "#ac3449"];
   const entries = (data || []).map(function(item, index) {
     const value = Number(item.value) || 0;
-    return { name: item.name || ("Position " + (index + 1)), value: value, amount: Math.abs(value), index: index };
+    return { name: item.name || ("Position " + (index + 1)), value: value, amount: Math.abs(value), percentage: Number(item.percentage) || 0, index: index };
   }).filter(function(item) { return item.amount > 0; });
+  const sum = entries.reduce(function(acc, item) { return acc + item.amount; }, 0);
 
-  const total = entries.reduce(function(sum, item) { return sum + item.amount; }, 0);
-  if (!total) {
-    pie.style.background = "rgba(255,255,255,0.12)";
+  if (!sum) {
+    svg.innerHTML = '';
     legend.innerHTML = '<div class="chart-loading">Keine YTD-Einzelwerte vorhanden</div>';
+    selected.innerText = "Keine Einzelwerte vorhanden";
     return;
   }
 
+  function polar(radius, angle) {
+    const rad = (angle - 90) * Math.PI / 180;
+    return { x: 120 + radius * Math.cos(rad), y: 120 + radius * Math.sin(rad) };
+  }
+  function ringPath(startAngle, endAngle) {
+    const outer = 100;
+    const inner = 64;
+    if (endAngle - startAngle >= 359.99) {
+      return "M 120 20 A 100 100 0 1 1 120 220 A 100 100 0 1 1 120 20 " +
+        "L 120 56 A 64 64 0 1 0 120 184 A 64 64 0 1 0 120 56 Z";
+    }
+    const a = polar(outer, startAngle);
+    const b = polar(outer, endAngle);
+    const c = polar(inner, endAngle);
+    const d = polar(inner, startAngle);
+    const large = endAngle - startAngle > 180 ? 1 : 0;
+    return "M " + a.x + " " + a.y + " A 100 100 0 " + large + " 1 " + b.x + " " + b.y +
+      " L " + c.x + " " + c.y + " A 64 64 0 " + large + " 0 " + d.x + " " + d.y + " Z";
+  }
+  function selectEntry(item, share) {
+    selected.innerHTML = '<strong>' + escapeHtml(item.name) + '</strong><span>' +
+      formatSignedEuro(item.value) + ' · ' + formatSignedPercent(item.percentage) +
+      ' · Anteil: ' + formatShare(share) + '</span>';
+  }
+
   let cursor = 0;
-  const stops = [];
-  let legendHtml = "";
+  let svgMarkup = '';
+  let legendHtml = '';
   entries.forEach(function(item) {
-    const share = item.amount / total * 100;
-    const end = cursor + share;
-    const palette = item.value >= 0 ? positiveColors : negativeColors;
+    const share = item.amount / sum * 100;
+    const end = cursor + share * 3.6;
+    const palette = item.value >= 0 ? green : red;
     const color = palette[item.index % palette.length];
-    stops.push(color + " " + cursor + "% " + end + "%");
-    legendHtml += '<div class="ytd-legend-item">' +
+    svgMarkup += '<path class="ytd-donut-slice" data-index="' + item.index + '" d="' + ringPath(cursor, end) +
+      '" fill="' + color + '" tabindex="0" role="button" aria-label="' + escapeHtml(item.name) +
+      ': ' + escapeHtml(formatSignedEuro(item.value)) + '"><title>' + escapeHtml(item.name) +
+      ' · ' + escapeHtml(formatSignedEuro(item.value)) + ' · ' + escapeHtml(formatShare(share)) + '</title></path>';
+    legendHtml += '<button type="button" class="ytd-legend-item" data-index="' + item.index + '">' +
       '<span class="ytd-legend-dot" style="background:' + color + '"></span>' +
-      '<div><div>' + escapeHtml(item.name) + '</div><strong>' +
-        formatSignedEuro(item.value) + ' · ' + formatShare(share) +
-      '</strong></div></div>';
+      '<span class="ytd-legend-copy"><span>' + escapeHtml(item.name) + '</span><strong>' +
+      formatSignedEuro(item.value) + ' · ' + formatShare(share) + '</strong></span></button>';
+    item.share = share;
+    item.color = color;
     cursor = end;
   });
 
-  pie.style.background = "conic-gradient(" + stops.join(",") + ")";
+  svg.innerHTML = svgMarkup;
   legend.innerHTML = legendHtml;
+  function choose(index) {
+    const selectedIndex = Number(index);
+    const item = entries.find(function(entry) { return entry.index === selectedIndex; });
+    if (!item) return;
+
+    svg.querySelectorAll(".ytd-donut-slice").forEach(function(path) {
+      path.removeAttribute("transform");
+      path.classList.remove("is-selected");
+    });
+    legend.querySelectorAll(".ytd-legend-item").forEach(function(button) {
+      button.classList.toggle("is-selected", Number(button.dataset.index) === selectedIndex);
+    });
+
+    const selectedPath = svg.querySelector('.ytd-donut-slice[data-index="' + selectedIndex + '"]');
+    if (selectedPath) {
+      selectedPath.setAttribute("transform", "translate(120 120) scale(1.045) translate(-120 -120)");
+      selectedPath.classList.add("is-selected");
+    }
+    selectEntry(item, item.share);
+  }
+  svg.querySelectorAll(".ytd-donut-slice").forEach(function(path) {
+    path.addEventListener("click", function() { choose(path.dataset.index); });
+    path.addEventListener("keydown", function(event) {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(path.dataset.index); }
+    });
+  });
+  legend.querySelectorAll(".ytd-legend-item").forEach(function(button) {
+    button.addEventListener("click", function() { choose(button.dataset.index); });
+  });
+  selectEntry(entries[0], entries[0].share);
 }
 function formatShare(value) {
   return new Intl.NumberFormat("de-AT", { maximumFractionDigits: 1 }).format(value) + " %";
@@ -1645,6 +1722,8 @@ function hideError() {
 </body>
 
 </html>
+
+
 
 
 

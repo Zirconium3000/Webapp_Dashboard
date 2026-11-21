@@ -839,7 +839,9 @@
     .ytd-legend-copy { min-width: 0; overflow-wrap: anywhere; }
     .ytd-legend-copy strong { display: block; margin-top: 3px; color: #fff; font-size: 11px; font-variant-numeric: tabular-nums; }
     .ytd-legend-dot { width: 10px; height: 10px; flex: 0 0 10px; margin-top: 3px; border-radius: 50%; }
-    @media (max-width: 380px) { .ytd-donut { width: 242px; height: 242px; flex-basis: 242px; } .ytd-donut-center { width: 141px; height: 141px; } .ytd-pie-legend { grid-template-columns: 1fr; } }</style>
+    @media (max-width: 380px) { .ytd-donut { width: 242px; height: 242px; flex-basis: 242px; } .ytd-donut-center { width: 141px; height: 141px; } .ytd-pie-legend { grid-template-columns: 1fr; } }    .standalone-card { margin-top: 17px; }
+    .standalone-row { margin-bottom: 16px; }
+</style>
 
 </head>
 
@@ -924,7 +926,7 @@
       </div>
 
       <div class="weekly-summary">
-        <div class="card-label"><span class="indicator"></span>WOCHENPERFORMANCE</div>
+        <div class="card-label">WOCHENPERFORMANCE</div>
         <div class="weekly-summary-values">
           <div class="weekly-main-value">
             <span id="weekPerformance" class="secondary-value">–</span>
@@ -954,6 +956,7 @@
         <div>
 
           <div class="card-label">
+            
             <span class="indicator"></span>
             PERFORMANCE
           </div>
@@ -984,6 +987,21 @@
       </div>
 
 
+    </section>
+    <section class="glass-card chart-card standalone-card">
+      <div class="chart-header">
+        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Intraday Delta</div></div>
+        <div class="chart-unit">€</div>
+      </div>
+      <div id="intradayOnlyChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
+    </section>
+
+    <section class="glass-card chart-card standalone-card">
+      <div class="chart-header">
+        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Woche</div></div>
+        <div class="chart-unit">€</div>
+      </div>
+      <div id="weeklyOnlyChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
     </section>
     <section class="glass-card chart-card portfolio-card">
       <div class="chart-header">
@@ -1115,6 +1133,8 @@ function loadDashboard() {
       renderPerformanceBreakdown("totalChart", data.totalData);
       renderPortfolioDonut(data.totalData, data.totalPortfolio, data.totalPortfolioPercentage, "total");
       renderCombinedChart(data.chartData, data.weeklyData);
+      renderStandalonePeriodChart("intradayOnlyChart", data.chartData, "intraday");
+      renderStandalonePeriodChart("weeklyOnlyChart", data.weeklyData, "week");
     })
     .catch(function(error) {
       showError("Daten konnten nicht geladen werden: " + error.message);
@@ -1487,6 +1507,43 @@ function renderPerformanceBreakdown(containerId, data) {
   });
   chart.innerHTML = html;
 }
+function renderStandalonePeriodChart(containerId, data, period) {
+  const chart = document.getElementById(containerId);
+  if (!data || !data.length) {
+    chart.innerHTML = '<div class="chart-loading">Keine Daten vorhanden</div>';
+    return;
+  }
+
+  let max = 0;
+  data.forEach(function(item) {
+    const percent = Number(item.percentage) || 0;
+    max = Math.max(max, Math.abs(percent));
+  });
+  if (!max) max = 1;
+
+  let html = '';
+  data.forEach(function(item) {
+    const value = period === "week" ? Number(item.performance) || 0 : Number(item.value) || 0;
+    const percent = Number(item.percentage) || 0;
+    const cls = value > 0 ? "positive" : value < 0 ? "negative" : "neutral";
+    const barCls = percent >= 0 ? "bar bar-positive" : "bar bar-negative";
+    const width = Math.abs(percent) / max * 50;
+    const previousLabel = period === "week" ? "Freitag" : "Vortag";
+    const bar = percent === 0 ? '' : '<div class="' + barCls + '" style="width:' + width + '%;"></div>';
+    html += '<div class="chart-row standalone-row">' +
+      '<div class="chart-row-header">' +
+        '<div class="chart-name">' + escapeHtml(item.name || '') + '</div>' +
+        '<div class="chart-value ' + cls + '">' + formatSignedEuro(value) +
+          ' (' + formatSignedPercent(percent / 100) + ')' +
+          '<br><span class="chart-prices">' + previousLabel + ': ' + formatNumber(item.previousPrice) +
+          ' € · Aktuell: ' + formatNumber(item.currentPrice) + ' €</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="bar-area"><div class="zero-line"></div>' + bar + '</div>' +
+    '</div>';
+  });
+  chart.innerHTML = html;
+}
 function renderCombinedChart(intradayData, weeklyData) {
   const chart = document.getElementById("combinedPerformanceChart");
   const weeklyByName = {};
@@ -1741,6 +1798,12 @@ function hideError() {
 </body>
 
 </html>
+
+
+
+
+
+
 
 
 

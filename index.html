@@ -1027,6 +1027,24 @@
       </div>
       <div id="totalChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
     </section>
+    <section class="glass-card chart-card portfolio-card">
+      <div class="chart-header">
+        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE GESAMT</div></div>
+        <div class="chart-unit">€</div>
+      </div>
+      <div class="ytd-pie-layout">
+        <div class="ytd-donut">
+          <svg id="totalDonutSvg" viewBox="0 0 240 240" role="img" aria-label="Gesamtperformance-Verteilung"></svg>
+          <div class="ytd-donut-center">
+            <span>Gesamt</span>
+            <strong id="totalDonutTotal">–</strong>
+            <small id="totalDonutPercent">–</small>
+          </div>
+        </div>
+        <div id="totalSelectedValue" class="ytd-selected-value" aria-live="polite"></div>
+        <div id="totalPieLegend" class="ytd-pie-legend"></div>
+      </div>
+    </section>
 
 <!-- =====================================================
          FEHLER
@@ -1093,8 +1111,9 @@ function loadDashboard() {
       updatePortfolioTotal("ytdTotal", "ytdTotalPercentage", data.ytdTotal, data.ytdTotalPercentage);
       updatePortfolioTotal("totalPortfolio", "totalPortfolioPercentage", data.totalPortfolio, data.totalPortfolioPercentage);
       renderPerformanceBreakdown("ytdChart", data.ytdData);
-      renderYtdSignPie(data.ytdData, data.ytdTotal, data.ytdTotalPercentage);
+      renderPortfolioDonut(data.ytdData, data.ytdTotal, data.ytdTotalPercentage, "ytd");
       renderPerformanceBreakdown("totalChart", data.totalData);
+      renderPortfolioDonut(data.totalData, data.totalPortfolio, data.totalPortfolioPercentage, "total");
       renderCombinedChart(data.chartData, data.weeklyData);
     })
     .catch(function(error) {
@@ -1339,12 +1358,12 @@ function loadDashboard() {
   setValueColor(percentElement, percent);
 }
 
-function renderYtdSignPie(data, totalValue, totalPercentage) {
-  const svg = document.getElementById("ytdDonutSvg");
-  const legend = document.getElementById("ytdPieLegend");
-  const selected = document.getElementById("ytdSelectedValue");
-  document.getElementById("ytdDonutTotal").innerText = formatSignedEuro(totalValue);
-  const totalPercentElement = document.getElementById("ytdDonutPercent");
+function renderPortfolioDonut(data, totalValue, totalPercentage, prefix) {
+  const svg = document.getElementById(prefix + "DonutSvg");
+  const legend = document.getElementById(prefix + "PieLegend");
+  const selected = document.getElementById(prefix + "SelectedValue");
+  document.getElementById(prefix + "DonutTotal").innerText = formatSignedEuro(totalValue);
+  const totalPercentElement = document.getElementById(prefix + "DonutPercent");
   totalPercentElement.innerText = formatSignedPercent(Number(totalPercentage) || 0);
 
   const green = ["#63f5a7", "#3bd68d", "#2fb878", "#8af7bd", "#22a86d"];
@@ -1357,7 +1376,7 @@ function renderYtdSignPie(data, totalValue, totalPercentage) {
 
   if (!sum) {
     svg.innerHTML = '';
-    legend.innerHTML = '<div class="chart-loading">Keine YTD-Einzelwerte vorhanden</div>';
+    legend.innerHTML = '<div class="chart-loading">Keine Einzelwerte vorhanden</div>';
     selected.innerText = "Keine Einzelwerte vorhanden";
     return;
   }
@@ -1722,6 +1741,8 @@ function hideError() {
 </body>
 
 </html>
+
+
 
 
 

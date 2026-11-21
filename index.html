@@ -999,8 +999,8 @@
     </section>
     <section class="glass-card chart-card portfolio-card">
       <div class="chart-header">
-        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE YTD</div><div class="chart-title">Positive / Negativ</div></div>
-        <div class="chart-unit">%</div>
+        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE YTD</div></div>
+        <div class="chart-unit">€</div>
       </div>
       <div class="ytd-pie-layout">
         <div id="ytdSignPie" class="ytd-donut">
@@ -1011,7 +1011,7 @@
             <small id="ytdDonutPercent">–</small>
           </div>
         </div>
-        <div id="ytdSelectedValue" class="ytd-selected-value" aria-live="polite">Segment antippen für Einzelwerte</div>
+        <div id="ytdSelectedValue" class="ytd-selected-value" aria-live="polite"></div>
         <div id="ytdPieLegend" class="ytd-pie-legend"></div>
       </div></section>
 
@@ -1439,7 +1439,7 @@ function renderYtdSignPie(data, totalValue, totalPercentage) {
   legend.querySelectorAll(".ytd-legend-item").forEach(function(button) {
     button.addEventListener("click", function() { choose(button.dataset.index); });
   });
-  selectEntry(entries[0], entries[0].share);
+  selected.innerHTML = "";
 }
 function formatShare(value) {
   return new Intl.NumberFormat("de-AT", { maximumFractionDigits: 1 }).format(value) + " %";
@@ -1722,6 +1722,7 @@ function hideError() {
 </body>
 
 </html>
+
 
 
 

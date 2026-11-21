@@ -805,7 +805,17 @@
         line-height: 1.2;
         white-space: nowrap;
       }
-    }</style>
+    }
+
+    .combined-stock-row { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.10); }
+    .combined-stock-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+    .combined-stock-name { margin: 0 3px 8px; color: rgba(255,255,255,0.82); font-size: 13px; font-weight: 650; }
+    .combined-period { margin-top: 10px; }
+    .combined-period-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin: 0 3px 6px; }
+    .combined-period-label { flex: 0 0 auto; padding-top: 1px; color: rgba(255,255,255,0.48); font-size: 10px; }
+    .combined-period-values { text-align: right; font-size: 12px; line-height: 1.25; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .combined-prices { display: block; margin-top: 2px; color: rgba(255,255,255,0.48); font-size: 10px; font-weight: 400; }
+</style>
 
 </head>
 
@@ -905,15 +915,7 @@
 
         </section>
 
-<section class="glass-card chart-card weekly-card">
-      <div class="chart-header">
-        <div><div class="card-label">WOCHENVERÄNDERUNG</div><div class="chart-title">Letzte Woche</div></div>
-        <div class="chart-unit">€</div>
-      </div>
-      <div id="weeklyPerformanceList" class="performance-chart">
-        <div class="chart-loading">Daten werden geladen...</div>
-      </div>
-    </section>
+
 
 <!-- =====================================================
          PERFORMANCE GRAPH
@@ -932,7 +934,7 @@
           </div>
 
           <div class="chart-title">
-            Intraday Delta
+            Intraday Delta · 1 Woche
           </div>
 
         </div>
@@ -947,7 +949,7 @@
 
 
       <div
-        id="performanceChart"
+        id="combinedPerformanceChart"
         class="performance-chart">
 
         <div class="chart-loading">
@@ -1022,8 +1024,7 @@ function loadDashboard() {
       weekPercentage.innerText = formatSignedPercent((data.weekPercentage || 0) / 100);
       setValueColor(weekPercentage, data.weekPercentage);
 
-      renderWeekly(data.weeklyData);
-      renderChart(data.chartData);
+      renderCombinedChart(data.chartData, data.weeklyData);
     })
     .catch(function(error) {
       showError("Daten konnten nicht geladen werden: " + error.message);
@@ -1258,7 +1259,40 @@ function loadDashboard() {
        ZAHLENFORMATIERUNG
        ========================================================= */
 
-    function formatNumber(value) {
+    function renderCombinedChart(intradayData, weeklyData) {
+  const chart = document.getElementById("combinedPerformanceChart");
+  const weeklyByName = {};
+  (weeklyData || []).forEach(function(w, i) { weeklyByName[w.name || String(i)] = w; });
+  let max = 0;
+  (intradayData || []).forEach(function(x) { max = Math.max(max, Math.abs(Number(x.value) || 0)); });
+  (weeklyData || []).forEach(function(x) { max = Math.max(max, Math.abs(Number(x.performance) || 0)); });
+  if (!max) max = 1;
+  function renderPeriod(label, value, pct, prevLabel, prev, current) {
+    const v = Number(value) || 0;
+    const cls = v > 0 ? "positive" : v < 0 ? "negative" : "neutral";
+    const bcls = v > 0 ? "bar bar-positive" : "bar bar-negative";
+    const bar = '<div class="bar-area"><div class="zero-line"></div>' +
+      (v ? '<div class="' + bcls + '" style="width:' + Math.abs(v) / max * 50 + '%;"></div>' : '') + '</div>';
+    return '<div class="combined-period"><div class="combined-period-header">' +
+      '<span class="combined-period-label">' + label + '</span>' +
+      '<span class="combined-period-values ' + cls + '">' + formatSignedEuro(v) +
+      ' (' + formatSignedPercent((Number(pct) || 0) / 100) + ')' +
+      '<span class="combined-prices">' + prevLabel + ': ' + formatNumber(prev) +
+      ' € · Aktuell: ' + formatNumber(current) + ' €</span></span></div>' + bar + '</div>';
+  }
+  if (!intradayData || !intradayData.length) {
+    chart.innerHTML = '<div class="chart-loading">Keine Daten vorhanden</div>'; return;
+  }
+  let html = "";
+  intradayData.forEach(function(x, i) {
+    const w = weeklyByName[x.name || String(i)] || weeklyData[i] || {};
+    html += '<div class="combined-stock-row"><div class="combined-stock-name">' + escapeHtml(x.name || "") + '</div>' +
+      renderPeriod("Intraday", x.value, x.percentage, "Vortag", x.previousPrice, x.currentPrice) +
+      renderPeriod("Letzte Woche", w.performance, w.percentage, "Freitag", w.previousPrice, w.currentPrice) + '</div>';
+  });
+  chart.innerHTML = html;
+}
+function formatNumber(value) {
 
       value =
         Number(value) || 0;
@@ -1478,6 +1512,10 @@ function hideError() {
 </body>
 
 </html>
+
+
+
+
 
 
 

@@ -146,8 +146,7 @@
       color:
         rgba(255,255,255,0.43);
     }
-
-    .header-title {
+.header-title {
       margin: 0;
 
       font-size: 34px;
@@ -754,9 +753,28 @@
           21px
           14px;
       }
-
-      .header-title {
+.header-title {
         font-size: 30px;
+      }
+      .weekly-summary-values {
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .weekly-comparison {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+      }
+
+      .weekly-comparison .comparison-value {
+        padding: 6px 9px;
+      }
+
+      .weekly-comparison .comparison-text {
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
       }
 
       #intradayDelta {
@@ -765,7 +783,29 @@
 
     }
 
-  </style>
+  
+    @media (max-width: 540px) {
+      .weekly-summary-values {
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .weekly-comparison {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+      }
+
+      .weekly-comparison .comparison-value {
+        padding: 6px 9px;
+      }
+
+      .weekly-comparison .comparison-text {
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+    }</style>
 
 </head>
 
@@ -1438,6 +1478,10 @@ function hideError() {
 </body>
 
 </html>
+
+
+
+
 
 
 

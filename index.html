@@ -274,8 +274,7 @@
     }
 
 
-    #intradayDelta,
-    .weekly-value {
+    #intradayDelta {
       font-size:
         clamp(49px, 15vw, 76px);
 
@@ -488,9 +487,28 @@
       font-variant-numeric:
         tabular-nums;
     }
-
-    .weekly-summary-card { margin-top: 17px; }
-    .weekly-value { font-variant-numeric: tabular-nums; }
+    .weekly-summary {
+      margin-top: 22px;
+      padding-top: 17px;
+      border-top: 1px solid rgba(255,255,255,0.14);
+    }
+    .weekly-summary-values {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .weekly-main-value { display: flex; align-items: baseline; gap: 5px; }
+    .secondary-value {
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+    }
+    .weekly-currency { font-size: 16px; color: rgba(255,255,255,0.55); }
+    .weekly-comparison { margin-top: 0; gap: 6px; }
     .weekly-card { margin-top: 17px; }
     .weekly-card .chart-name {
       transform: translateY(10px);
@@ -691,8 +709,7 @@
           28px;
       }
 
-      #intradayDelta,
-    .weekly-value {
+      #intradayDelta {
         font-size: 82px;
       }
 
@@ -742,8 +759,7 @@
         font-size: 30px;
       }
 
-      #intradayDelta,
-    .weekly-value {
+      #intradayDelta {
         font-size: 48px;
       }
 
@@ -833,22 +849,23 @@
 
       </div>
 
-
-    </section>
-
-    <section class="glass-card delta-card weekly-summary-card">
-      <div class="card-label">WOCHENPERFORMANCE</div>
-      <div class="main-value">
-        <span id="weekPerformance" class="weekly-value">–</span>
-        <span class="currency">€</span>
+      <div class="weekly-summary">
+        <div class="card-label">WOCHENPERFORMANCE</div>
+        <div class="weekly-summary-values">
+          <div class="weekly-main-value">
+            <span id="weekPerformance" class="secondary-value">–</span>
+            <span class="weekly-currency">€</span>
+          </div>
+          <div class="comparison weekly-comparison">
+            <span id="weekPercentage" class="comparison-value neutral">–</span>
+            <span class="comparison-text">vs. Freitag der Vorwoche</span>
+          </div>
+        </div>
       </div>
-      <div class="comparison">
-        <span id="weekPercentage" class="comparison-value neutral">–</span>
-        <span class="comparison-text">vs. Freitag der Vorwoche</span>
-      </div>
-    </section>
 
-    <section class="glass-card chart-card weekly-card">
+        </section>
+
+<section class="glass-card chart-card weekly-card">
       <div class="chart-header">
         <div><div class="card-label">WOCHENVERÄNDERUNG</div><div class="chart-title">Letzte Woche</div></div>
         <div class="chart-unit">€</div>
@@ -1421,6 +1438,10 @@ function hideError() {
 </body>
 
 </html>
+
+
+
+
 
 
 

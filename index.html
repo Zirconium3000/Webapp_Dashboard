@@ -815,6 +815,12 @@
     .combined-period-label { flex: 0 0 auto; padding-top: 1px; color: rgba(255,255,255,0.48); font-size: 10px; }
     .combined-period-values { text-align: right; font-size: 12px; line-height: 1.25; font-weight: 650; font-variant-numeric: tabular-nums; }
     .combined-prices { display: block; margin-top: 2px; color: rgba(255,255,255,0.48); font-size: 10px; font-weight: 400; }
+    .portfolio-card { margin-top: 17px; }
+    .portfolio-total { display: flex; align-items: baseline; gap: 9px; margin: 0 4px 22px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.13); }
+    .portfolio-total-label { color: rgba(255,255,255,0.5); font-size: 12px; }
+    .portfolio-total-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .portfolio-total-percent { margin-left: auto; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .portfolio-row { margin-bottom: 16px; }
 </style>
 
 </head>
@@ -961,6 +967,31 @@
 
 
     </section>
+    <section class="glass-card chart-card portfolio-card">
+      <div class="chart-header">
+        <div><div class="card-label">PERFORMANCE</div><div class="chart-title">YTD</div></div>
+        <div class="chart-unit">€</div>
+      </div>
+      <div class="portfolio-total">
+        <span class="portfolio-total-label">Gesamt</span>
+        <span id="ytdTotal" class="portfolio-total-value">–</span>
+        <span id="ytdTotalPercentage" class="portfolio-total-percent neutral">–</span>
+      </div>
+      <div id="ytdChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
+    </section>
+
+    <section class="glass-card chart-card portfolio-card">
+      <div class="chart-header">
+        <div><div class="card-label">PERFORMANCE</div><div class="chart-title">Gesamt</div></div>
+        <div class="chart-unit">€</div>
+      </div>
+      <div class="portfolio-total">
+        <span class="portfolio-total-label">Gesamt</span>
+        <span id="totalPortfolio" class="portfolio-total-value">–</span>
+        <span id="totalPortfolioPercentage" class="portfolio-total-percent neutral">–</span>
+      </div>
+      <div id="totalChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
+    </section>
 
 <!-- =====================================================
          FEHLER
@@ -985,7 +1016,6 @@
     /* =========================================================
        DASHBOARD LADEN
        ========================================================= */
-
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmNNAJbM87_fuN2IBixqvKOC4NHGqMXbV9IfPbQfG2n7gu-bLVSwGj0oupKT-MbkVwkw/exec";
 let dashboardRequestId = 0;
 
@@ -1025,6 +1055,10 @@ function loadDashboard() {
       weekPercentage.innerText = formatSignedPercent((data.weekPercentage || 0) / 100);
       setValueColor(weekPercentage, data.weekPercentage);
 
+      updatePortfolioTotal("ytdTotal", "ytdTotalPercentage", data.ytdTotal, data.ytdTotalPercentage);
+      updatePortfolioTotal("totalPortfolio", "totalPortfolioPercentage", data.totalPortfolio, data.totalPortfolioPercentage);
+      renderPerformanceBreakdown("ytdChart", data.ytdData);
+      renderPerformanceBreakdown("totalChart", data.totalData);
       renderCombinedChart(data.chartData, data.weeklyData);
     })
     .catch(function(error) {
@@ -1260,7 +1294,40 @@ function loadDashboard() {
        ZAHLENFORMATIERUNG
        ========================================================= */
 
-    function renderCombinedChart(intradayData, weeklyData) {
+    function updatePortfolioTotal(valueId, percentId, value, percent) {
+  const valueElement = document.getElementById(valueId);
+  valueElement.innerText = formatSignedEuro(value);
+  setValueColor(valueElement, value);
+  const percentElement = document.getElementById(percentId);
+  percentElement.innerText = '(' + formatSignedPercent(Number(percent) || 0) + ')';
+  setValueColor(percentElement, percent);
+}
+
+function renderPerformanceBreakdown(containerId, data) {
+  const chart = document.getElementById(containerId);
+  if (!data || !data.length) {
+    chart.innerHTML = '<div class="chart-loading">Keine Daten vorhanden</div>';
+    return;
+  }
+  let max = 0;
+  data.forEach(function(item) { max = Math.max(max, Math.abs(Number(item.value) || 0)); });
+  if (!max) max = 1;
+  let html = '';
+  data.forEach(function(item) {
+    const pct = Number(item.percentage) || 0;
+    const absoluteValue = Number(item.value) || 0;
+    const value = Number(item.value) || 0;
+    const cls = absoluteValue > 0 ? 'positive' : absoluteValue < 0 ? 'negative' : 'neutral';
+    const barCls = absoluteValue >= 0 ? 'bar bar-positive' : 'bar bar-negative';
+    const bar = absoluteValue === 0 ? '' : '<div class="' + barCls + '" style="width:' + Math.abs(absoluteValue) / max * 50 + '%;"></div>';
+    html += '<div class="chart-row portfolio-row">' +
+      '<div class="chart-row-header"><div class="chart-name">' + escapeHtml(item.name || '') + '</div>' +
+      '<div class="chart-value ' + cls + '">' + formatSignedEuro(value) + ' (' + formatSignedPercent(pct) + ')</div></div>' +
+      '<div class="bar-area"><div class="zero-line"></div>' + bar + '</div></div>';
+  });
+  chart.innerHTML = html;
+}
+function renderCombinedChart(intradayData, weeklyData) {
   const chart = document.getElementById("combinedPerformanceChart");
   const weeklyByName = {};
   (weeklyData || []).forEach(function(w, i) { weeklyByName[w.name || String(i)] = w; });
@@ -1514,6 +1581,20 @@ function hideError() {
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -116,11 +116,21 @@ function getDashboardData() {
   const weeklyPerformance = sheet.getRange('D23:D36').getValues();
   const weeklyPercentages = sheet.getRange('F23:F36').getValues();
   const tradeTime = sheet.getRange('D17').getDisplayValue();
+  const ytdValues = sheet.getRange('H2:H15').getValues();
+  const ytdPercentages = sheet.getRange('I2:I15').getValues();
+  const ytdTotal = Number(sheet.getRange('H17').getValue()) || 0;
+  const ytdTotalPercentage = Number(sheet.getRange('I17').getValue()) || 0;
+  const totalValues = sheet.getRange('K2:K15').getValues();
+  const totalPercentages = sheet.getRange('L2:L15').getValues();
+  const totalPortfolio = Number(sheet.getRange('K17').getValue()) || 0;
+  const totalPortfolioPercentage = Number(sheet.getRange('L17').getValue()) || 0;
 
   // ----------------------------------------------------------
   // DATEN FÜR DIAGRAMM AUFBEREITEN
   // ----------------------------------------------------------
 
+  const ytdData = [];
+  const totalData = [];
   const chartData = [];
   const weeklyData = [];
 
@@ -168,6 +178,18 @@ function getDashboardData() {
   }
 
   
+  for (let i = 0; i < 14; i++) {
+    ytdData.push({
+      name: names[i][0],
+      value: Number(ytdValues[i][0]) || 0,
+      percentage: Number(ytdPercentages[i][0]) || 0
+    });
+    totalData.push({
+      name: names[i][0],
+      value: Number(totalValues[i][0]) || 0,
+      percentage: Number(totalPercentages[i][0]) || 0
+    });
+  }
   // DATEN AN WEB-APP ZURÜCKGEBEN
   // ----------------------------------------------------------
 
@@ -184,12 +206,22 @@ function getDashboardData() {
 
     tradeTime: tradeTime,
 
+    ytdTotal: ytdTotal,
+    ytdTotalPercentage: ytdTotalPercentage,
+    ytdData: ytdData,
+    totalPortfolio: totalPortfolio,
+    totalPortfolioPercentage: totalPortfolioPercentage,
+    totalData: totalData,
+
     chartData:
       chartData
 
   };
 
 }
+
+
+
 
 
 

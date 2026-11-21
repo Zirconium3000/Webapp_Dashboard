@@ -274,7 +274,8 @@
     }
 
 
-    #intradayDelta {
+    #intradayDelta,
+    .weekly-value {
       font-size:
         clamp(49px, 15vw, 76px);
 
@@ -488,6 +489,25 @@
         tabular-nums;
     }
 
+    .weekly-summary-card { margin-top: 17px; }
+    .weekly-value { font-variant-numeric: tabular-nums; }
+    .weekly-card { margin-top: 17px; }
+    .weekly-card .chart-name {
+      transform: translateY(10px);
+    }
+    .weekly-prices {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      margin: 3px 3px 8px;
+      text-align: right;
+      color: rgba(255,255,255,0.48);
+      font-size: 10px;
+      line-height: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .weekly-row { margin-bottom: 16px; }
     .chart-prices {
       display: inline-block;
       text-align: right;
@@ -671,7 +691,8 @@
           28px;
       }
 
-      #intradayDelta {
+      #intradayDelta,
+    .weekly-value {
         font-size: 82px;
       }
 
@@ -721,7 +742,8 @@
         font-size: 30px;
       }
 
-      #intradayDelta {
+      #intradayDelta,
+    .weekly-value {
         font-size: 48px;
       }
 
@@ -814,9 +836,29 @@
 
     </section>
 
+    <section class="glass-card delta-card weekly-summary-card">
+      <div class="card-label">WOCHENPERFORMANCE</div>
+      <div class="main-value">
+        <span id="weekPerformance" class="weekly-value">–</span>
+        <span class="currency">€</span>
+      </div>
+      <div class="comparison">
+        <span id="weekPercentage" class="comparison-value neutral">–</span>
+        <span class="comparison-text">vs. Freitag der Vorwoche</span>
+      </div>
+    </section>
 
+    <section class="glass-card chart-card weekly-card">
+      <div class="chart-header">
+        <div><div class="card-label">WOCHENVERÄNDERUNG</div><div class="chart-title">Letzte Woche</div></div>
+        <div class="chart-unit">€</div>
+      </div>
+      <div id="weeklyPerformanceList" class="performance-chart">
+        <div class="chart-loading">Daten werden geladen...</div>
+      </div>
+    </section>
 
-    <!-- =====================================================
+<!-- =====================================================
          PERFORMANCE GRAPH
          ===================================================== -->
 
@@ -860,17 +902,13 @@
 
     </section>
 
-
-
-    <!-- =====================================================
+<!-- =====================================================
          FEHLER
          ===================================================== -->
 
     <div id="error"></div>
 
-
-
-    <!-- =====================================================
+<!-- =====================================================
          FOOTER
          ===================================================== -->
 
@@ -881,9 +919,7 @@
 
   </main>
 
-
-
-  <script>
+<script>
 
 
     /* =========================================================
@@ -921,6 +957,15 @@ function loadDashboard() {
       setValueColor(comparison, data.previousDayDelta);
       document.getElementById("intradayTradeTime").innerText = data.tradeTime || "–";
 
+      const weekPerformance = document.getElementById("weekPerformance");
+      weekPerformance.innerText = formatNumber(data.weekPerformance);
+      setValueColor(weekPerformance, data.weekPerformance);
+
+      const weekPercentage = document.getElementById("weekPercentage");
+      weekPercentage.innerText = formatSignedPercent((data.weekPercentage || 0) / 100);
+      setValueColor(weekPercentage, data.weekPercentage);
+
+      renderWeekly(data.weeklyData);
       renderChart(data.chartData);
     })
     .catch(function(error) {
@@ -1103,9 +1148,56 @@ function loadDashboard() {
 
     }
 
+    function renderWeekly(data) {
+      const chart = document.getElementById("weeklyPerformanceList");
+      if (!data || data.length === 0) {
+        chart.innerHTML = '<div class="chart-loading">Keine Daten vorhanden</div>';
+        return;
+      }
 
+      let maxValue = 0;
+      data.forEach(function(item) {
+        maxValue = Math.max(maxValue, Math.abs(Number(item.performance) || 0));
+      });
+      if (maxValue === 0) maxValue = 1;
 
-    /* =========================================================
+      let html = "";
+      data.forEach(function(item) {
+        const value = Number(item.performance) || 0;
+        const percentage = Number(item.percentage) || 0;
+        const name = item.name || "";
+        const barWidth = Math.abs(value) / maxValue * 50;
+        let barClass = "";
+        let valueClass = "neutral";
+
+        if (value > 0) {
+          barClass = "bar bar-positive";
+          valueClass = "positive";
+        } else if (value < 0) {
+          barClass = "bar bar-negative";
+          valueClass = "negative";
+        }
+
+        html += '<div class="chart-row">' +
+          '<div class="chart-row-header">' +
+            '<div class="chart-name">' + escapeHtml(name) + '</div>' +
+            '<div class="chart-value ' + valueClass + '">' +
+              formatSignedEuro(value) + ' (' + formatSignedPercent(percentage / 100) + ')' +
+            '</div>' +
+          '</div>' +
+          '<div class="weekly-prices"><span>Freitag: ' + formatNumber(item.previousPrice) + ' €</span>' +
+            '<span>Aktuell: ' + formatNumber(item.currentPrice) + ' €</span></div>' +
+          '<div class="bar-area"><div class="zero-line"></div>';
+
+        if (value !== 0) {
+          html += '<div class="' + barClass + '" style="width:' + barWidth + '%;"></div>';
+        }
+
+        html += '</div></div>';
+      });
+      chart.innerHTML = html;
+    }
+/* =========================================================
        ZAHLENFORMATIERUNG
        ========================================================= */
 
@@ -1125,9 +1217,7 @@ function loadDashboard() {
 
     }
 
-
-
-    function formatSignedPercent(value) {
+function formatSignedPercent(value) {
 
       value =
         (Number(value) || 0) * 100;
@@ -1205,9 +1295,7 @@ function loadDashboard() {
 
     }
 
-
-
-    /* =========================================================
+/* =========================================================
        FARBCODIERUNG
        ========================================================= */
 
@@ -1250,9 +1338,7 @@ function loadDashboard() {
 
     }
 
-
-
-    /* =========================================================
+/* =========================================================
        HTML SICHER AUSGEBEN
        ========================================================= */
 
@@ -1287,9 +1373,7 @@ function loadDashboard() {
 
     }
 
-
-
-    /* =========================================================
+/* =========================================================
        FEHLER
        ========================================================= */
 
@@ -1311,9 +1395,7 @@ function loadDashboard() {
 
     }
 
-
-
-    function hideError() {
+function hideError() {
 
       document
         .getElementById("error")
@@ -1322,9 +1404,7 @@ function loadDashboard() {
 
     }
 
-
-
-    /* =========================================================
+/* =========================================================
        START
        ========================================================= */
         loadDashboard();
@@ -1341,15 +1421,6 @@ function loadDashboard() {
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
 
 
 

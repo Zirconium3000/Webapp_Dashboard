@@ -847,6 +847,21 @@
     .ytd-legend-dot { width: 10px; height: 10px; flex: 0 0 10px; margin-top: 3px; border-radius: 50%; }
     @media (max-width: 380px) { .ytd-donut { width: 242px; height: 242px; flex-basis: 242px; } .ytd-donut-center { width: 141px; height: 141px; } .ytd-pie-legend { grid-template-columns: 1fr; } }    .standalone-card { margin-top: 17px; }
     .standalone-row { margin-bottom: 16px; }
+    .compact-intraday-card { margin-top: 17px; }
+    .compact-intraday-card .chart-header { margin-bottom: 14px; }
+    .compact-intraday-row { padding: 8px 3px; border-bottom: 1px solid rgba(255,255,255,0.09); }
+    .compact-intraday-row:first-child { padding-top: 0; }
+    .compact-intraday-row:last-child { padding-bottom: 0; border-bottom: 0; }
+    .compact-intraday-main { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .compact-intraday-name { min-width: 0; overflow: hidden; color: rgba(255,255,255,0.72); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .compact-intraday-value { flex: 0 0 auto; text-align: right; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
+    .compact-intraday-prices { margin-top: 3px; color: rgba(255,255,255,0.43); text-align: right; font-size: 10px; font-variant-numeric: tabular-nums; }
+    .compact-intraday-prices span { padding: 0 3px; }
+    .compact-bar-area { position: relative; height: 4px; margin-top: 6px; overflow: hidden; border-radius: 3px; background: rgba(255,255,255,0.06); }
+    .compact-bar-zero { position: absolute; z-index: 2; top: 0; bottom: 0; left: 50%; width: 1px; background: rgba(255,255,255,0.3); }
+    .compact-bar-area .compact-bar-positive, .compact-bar-area .compact-bar-negative { position: absolute; top: 0; height: 4px; border-radius: 3px; }
+    .compact-bar-positive { left: 50%; background: linear-gradient(90deg,rgba(58,218,135,0.45),rgba(83,250,162,0.98)); }
+    .compact-bar-negative { right: 50%; background: linear-gradient(90deg,rgba(255,81,105,0.98),rgba(255,81,105,0.45)); }
 </style>
 
 </head>
@@ -954,6 +969,15 @@
       </div>
       <div id="intradayOnlyChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
     </section>
+<section class="glass-card chart-card compact-intraday-card">
+  <div class="chart-header">
+    <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Intraday Delta · kompakt</div></div>
+    <div class="chart-unit">€</div>
+  </div>
+  <div id="compactIntradayList" class="compact-intraday-list">
+    <div class="chart-loading">Daten werden geladen...</div>
+  </div>
+</section>
 
 <section class="glass-card chart-card standalone-card">
       <div class="chart-header">
@@ -1155,6 +1179,7 @@ function loadDashboard() {
       renderPortfolioDonut(data.totalData, data.totalPortfolio, data.totalPortfolioPercentage, "total");
       renderCombinedChart(data.chartData, data.weeklyData);
       renderStandalonePeriodChart("intradayOnlyChart", data.chartData, "intraday");
+      renderCompactIntraday(data.chartData);
       renderStandalonePeriodChart("weeklyOnlyChart", data.weeklyData, "week");
     })
     .catch(function(error) {
@@ -1528,6 +1553,41 @@ function renderPerformanceBreakdown(containerId, data) {
   });
   chart.innerHTML = html;
 }
+function renderCompactIntraday(data) {
+  const list = document.getElementById("compactIntradayList");
+  if (!data || !data.length) {
+    list.innerHTML = '<div class="chart-loading">Keine Daten vorhanden</div>';
+    return;
+  }
+
+  let maxPercent = 0;
+  data.forEach(function(item) {
+    maxPercent = Math.max(maxPercent, Math.abs(Number(item.percentage) || 0));
+  });
+  if (!maxPercent) maxPercent = 1;
+
+  let html = '';
+  data.forEach(function(item) {
+    const value = Number(item.value) || 0;
+    const percent = Number(item.percentage) || 0;
+    const cls = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
+    const barClass = percent > 0 ? 'compact-bar-positive' : 'compact-bar-negative';
+    const barWidth = Math.abs(percent) / maxPercent * 50;
+    const bar = percent === 0 ? '' : '<span class="' + barClass + '" style="width:' + barWidth + '%"></span>';
+
+    html += '<div class="compact-intraday-row">' +
+      '<div class="compact-intraday-main">' +
+        '<span class="compact-intraday-name">' + escapeHtml(item.name || '') + '</span>' +
+        '<span class="compact-intraday-value ' + cls + '">' + formatSignedEuro(value) +
+          ' (' + formatSignedPercent(percent / 100) + ')</span>' +
+      '</div>' +
+      '<div class="compact-intraday-prices">Vortag: ' + formatNumber(item.previousPrice) +
+        ' € <span>·</span> Aktuell: ' + formatNumber(item.currentPrice) + ' €</div>' +
+      '<div class="compact-bar-area"><span class="compact-bar-zero"></span>' + bar + '</div>' +
+    '</div>';
+  });
+  list.innerHTML = html;
+}
 function renderStandalonePeriodChart(containerId, data, period) {
   const chart = document.getElementById(containerId);
   if (!data || !data.length) {
@@ -1819,6 +1879,8 @@ function hideError() {
 </body>
 
 </html>
+
+
 
 
 

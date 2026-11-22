@@ -925,6 +925,38 @@
     .trend-history-bar-positive, .trend-history-bar-negative { position: absolute; top: 0; height: 4px; border-radius: 3px; }
     .trend-history-bar-positive { left: 50%; background: #53faa2; }
     .trend-history-bar-negative { right: 50%; background: #ff5169; }
+    .trend-graph-card { margin-top: 17px; }
+    .trend-graph-card .chart-header { margin-bottom: 14px; }
+    .trend-graph-summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 2px 14px;
+      padding: 11px 13px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.045);
+    }
+    .trend-graph-summary > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .trend-graph-summary > div:last-child { align-items: flex-end; text-align: right; }
+    .trend-graph-summary span { color: rgba(255,255,255,0.48); font-size: 10px; }
+    .trend-graph-summary strong { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .trend-selected-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0 4px 8px; }
+    .trend-selected-title span { overflow: hidden; font-size: 14px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    .trend-selected-title strong { flex: 0 0 auto; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .trend-selected-chart { width: 100%; height: 190px; }
+    .trend-selected-chart svg { display: block; width: 100%; height: 100%; }
+    .trend-selected-weeks { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; margin: 2px 0 16px; }
+    .trend-selected-week { min-width: 0; text-align: center; }
+    .trend-selected-week span, .trend-selected-week strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .trend-selected-week span { color: rgba(255,255,255,0.45); font-size: 8px; line-height: 1.35; }
+    .trend-selected-week strong { margin-top: 4px; font-size: 9px; font-weight: 650; }
+    .trend-stock-picker { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px 8px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.09); }
+    .trend-stock-option { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 7px 6px; border: 0; border-radius: 9px; background: transparent; color: rgba(255,255,255,0.68); text-align: left; font: inherit; cursor: pointer; }
+    .trend-stock-option:hover, .trend-stock-option:focus, .trend-stock-option.is-selected { background: rgba(255,255,255,0.09); outline: none; }
+    .trend-stock-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; }
+    .trend-stock-option-name { min-width: 0; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .trend-stock-option-total { margin-left: auto; flex: 0 0 auto; font-size: 9px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
 </style>
 
@@ -952,7 +984,7 @@
 
       <div class="header-small">
         LIVE DASHBOARD
-        <span class="header-version">V0.09</span>
+        <span class="header-version">V0.10</span>
       </div>
 
       <h1 class="header-title">
@@ -1058,6 +1090,24 @@
   <div id="trendHistoryItems" class="trend-history-items">
     <div class="chart-loading">Daten werden geladen...</div>
   </div>
+</section>
+
+<section class="glass-card chart-card trend-graph-card">
+  <div class="chart-header">
+    <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Trend · Titel auswählen</div></div>
+    <div class="chart-unit">€</div>
+  </div>
+  <div class="trend-graph-summary">
+    <div><span>4 Wochen gesamt</span><strong id="trendGraphTotal">–</strong></div>
+    <div><span>Veränderung</span><strong id="trendGraphPercentage">–</strong></div>
+  </div>
+  <div class="trend-selected-title">
+    <span id="trendSelectedName">Titel auswählen</span>
+    <strong id="trendSelectedTotal">–</strong>
+  </div>
+  <div id="trendSelectedChart" class="trend-selected-chart"><div class="chart-loading">Daten werden geladen...</div></div>
+  <div id="trendSelectedWeeks" class="trend-selected-weeks"></div>
+  <div id="trendStockPicker" class="trend-stock-picker"><div class="chart-loading">Daten werden geladen...</div></div>
 </section>
 
 <section class="glass-card chart-card portfolio-card">
@@ -1263,6 +1313,7 @@ function loadDashboard() {
       renderCompactPeriod(data.chartData, "compactIntradayList", "intraday");
       renderCompactPeriod(data.weeklyData, "weeklyOnlyList", "week");
       renderTrendHistory(data.trendData);
+      renderTrendGraph(data.trendData);
     })
     .catch(function(error) {
       showError("Daten konnten nicht geladen werden: " + error.message);
@@ -1762,6 +1813,107 @@ function formatTrendDate(value) {
     year: "2-digit",
     timeZone: "Europe/Berlin"
   }).format(date);
+}
+
+let trendTickerData = [];
+let selectedTrendTickerIndex = 0;
+
+function renderTrendGraph(trendData) {
+  const picker = document.getElementById("trendStockPicker");
+  if (!trendData || trendData.length < 20) {
+    document.getElementById("trendSelectedChart").innerHTML = '<div class="chart-loading">Keine Daten vorhanden</div>';
+    picker.innerHTML = '';
+    return;
+  }
+
+  trendTickerData = trendData;
+  const overall = Number(trendData[19][4]) || 0;
+  const overallPercent = Number(trendData[19][5]) || 0;
+  const totalElement = document.getElementById("trendGraphTotal");
+  const percentElement = document.getElementById("trendGraphPercentage");
+  totalElement.innerText = formatSignedEuro(overall);
+  percentElement.innerText = formatSignedPercent(overallPercent);
+  setValueColor(totalElement, overall);
+  setValueColor(percentElement, overallPercent);
+
+  picker.innerHTML = trendData.slice(0, 14).map(function(row, index) {
+    const total = Number(row[5]) || 0;
+    const valueClass = total > 0 ? "positive" : total < 0 ? "negative" : "neutral";
+    const dotColor = total >= 0 ? "#53faa2" : "#ff5169";
+    return '<button type="button" class="trend-stock-option" data-trend-index="' + index + '" aria-pressed="false">' +
+      '<span class="trend-stock-dot" style="background:' + dotColor + '"></span>' +
+      '<span class="trend-stock-option-name">' + escapeHtml(row[0] || "") + '</span>' +
+      '<span class="trend-stock-option-total ' + valueClass + '">' + formatSignedEuro(total) + '</span>' +
+    '</button>';
+  }).join("");
+
+  picker.onclick = function(event) {
+    const button = event.target.closest("[data-trend-index]");
+    if (!button) return;
+    selectedTrendTickerIndex = Number(button.getAttribute("data-trend-index")) || 0;
+    renderSelectedTrendTicker();
+  };
+
+  selectedTrendTickerIndex = Math.min(selectedTrendTickerIndex, 13);
+  renderSelectedTrendTicker();
+}
+
+function renderSelectedTrendTicker() {
+  if (!trendTickerData || !trendTickerData.length) return;
+  const row = trendTickerData[selectedTrendTickerIndex] || trendTickerData[0];
+  const weeks = [
+    { label: "Vor 3 Wochen", from: trendTickerData[16][1], to: trendTickerData[17][1] },
+    { label: "Vor 2 Wochen", from: trendTickerData[16][2], to: trendTickerData[17][2] },
+    { label: "Vor 1 Woche", from: trendTickerData[16][3], to: trendTickerData[17][3] },
+    { label: "Akt. Woche", from: trendTickerData[16][4], to: trendTickerData[17][4] }
+  ];
+  const values = row.slice(1, 5).map(function(value) { return Number(value) || 0; });
+  const total = Number(row[5]) || 0;
+
+  document.getElementById("trendSelectedName").innerText = row[0] || "–";
+  const selectedTotal = document.getElementById("trendSelectedTotal");
+  selectedTotal.innerText = formatSignedEuro(total);
+  setValueColor(selectedTotal, total);
+
+  const minValue = Math.min.apply(null, values.concat([0]));
+  const maxValue = Math.max.apply(null, values.concat([0]));
+  const span = maxValue === minValue ? 1 : maxValue - minValue;
+  const top = 16;
+  const bottom = 164;
+  const zeroY = bottom - (0 - minValue) / span * (bottom - top);
+  const plotWidth = 320;
+  const centers = [52, 124, 196, 268];
+  const bars = values.map(function(value, index) {
+    const valueY = bottom - (value - minValue) / span * (bottom - top);
+    const y = Math.min(zeroY, valueY);
+    const height = Math.max(2, Math.abs(valueY - zeroY));
+    const fill = value > 0 ? "#53faa2" : value < 0 ? "#ff5169" : "#89939d";
+    return '<rect x="' + (centers[index] - 20) + '" y="' + y + '" width="40" height="' + height + '" rx="6" fill="' + fill + '" opacity="0.9" />';
+  }).join("");
+  document.getElementById("trendSelectedChart").innerHTML =
+    '<svg viewBox="0 0 ' + plotWidth + ' 180" role="img" aria-label="Vier Wochenwerte für ' + escapeHtml(row[0] || "Titel") + '">' +
+      '<line x1="18" y1="' + zeroY + '" x2="302" y2="' + zeroY + '" stroke="rgba(255,255,255,0.34)" stroke-dasharray="4 4" />' +
+      bars +
+    '</svg>';
+
+  document.getElementById("trendSelectedWeeks").innerHTML = weeks.map(function(week, index) {
+    const from = formatTrendDate(week.from);
+    const to = formatTrendDate(week.to);
+    const dateRange = from + (from && to ? "–" : "") + to;
+    const value = values[index];
+    const valueClass = value > 0 ? "positive" : value < 0 ? "negative" : "neutral";
+    return '<div class="trend-selected-week">' +
+      '<span>' + week.label + '</span>' +
+      '<span>' + escapeHtml(dateRange || "–") + '</span>' +
+      '<strong class="' + valueClass + '">' + formatSignedEuro(value) + '</strong>' +
+    '</div>';
+  }).join("");
+
+  document.querySelectorAll("#trendStockPicker .trend-stock-option").forEach(function(button, index) {
+    const selected = index === selectedTrendTickerIndex;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+  });
 }
 
 function renderStandalonePeriodChart(containerId, data, period) {

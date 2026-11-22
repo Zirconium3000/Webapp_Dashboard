@@ -43,16 +43,14 @@ function doGet(e) {
 // GOOGLE SHEET HOLEN
 // ============================================================
 
-function getSheet() {
+function getSheet(spreadsheet, sheetName) {
+  const sheet = spreadsheet.getSheetByName(sheetName);
 
-  const spreadsheet =
-    SpreadsheetApp.openById(
-      SPREADSHEET_ID
-    );
+  if (!sheet) {
+    throw new Error('Tabellenblatt nicht gefunden: ' + sheetName);
+  }
 
-  // Erstes Tabellenblatt verwenden
-  return spreadsheet.getSheets()[0];
-
+  return sheet;
 }
 
 
@@ -62,7 +60,10 @@ function getSheet() {
 
 function getDashboardData() {
 
-  const sheet = getSheet();
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = getSheet(spreadsheet, 'MSD_small_2026');
+  const trendSheet = getSheet(spreadsheet, 'MSD_trend_2026');
+  const trendData = trendSheet.getRange('A2:F21').getValues();
 
   // ----------------------------------------------------------
   // INTRADAY DELTA
@@ -212,6 +213,8 @@ function getDashboardData() {
     totalPortfolio: totalPortfolio,
     totalPortfolioPercentage: totalPortfolioPercentage,
     totalData: totalData,
+
+    trendData: trendData,
 
     chartData:
       chartData

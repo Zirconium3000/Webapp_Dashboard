@@ -868,6 +868,12 @@
     .standalone-row { margin-bottom: 16px; }
     .compact-intraday-card { margin-top: 17px; }
     .compact-intraday-card .chart-header { margin-bottom: 10px; }
+    .performance-swipe-carousel { margin-top: 17px; overflow: hidden; touch-action: pan-y; }
+    .performance-swipe-track { display: flex; width: 200%; transition: transform 240ms ease; will-change: transform; }
+    .performance-swipe-panel { flex: 0 0 50%; margin-top: 0; }
+    .performance-swipe-dots { display: flex; justify-content: center; gap: 6px; margin-top: 9px; }
+    .performance-swipe-dot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,0.28); cursor: pointer; transition: width 180ms ease, background 180ms ease; }
+    .performance-swipe-dot.is-active { width: 18px; border-radius: 4px; background: rgba(255,255,255,0.78); }
     .compact-intraday-row { padding: 5px 3px; border-bottom: 1px solid rgba(255,255,255,0.09); }
     .compact-intraday-row:first-child { padding-top: 0; }
     .compact-intraday-row:last-child { padding-bottom: 0; border-bottom: 0; }
@@ -1026,23 +1032,33 @@
 
         </section>
 
-<section class="glass-card chart-card compact-intraday-card">
-  <div class="chart-header">
-    <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Intraday Delta</div></div>
-    <div class="chart-unit">€</div>
-  </div>
-  <div id="compactIntradayList" class="compact-intraday-list">
-    <div class="chart-loading">Daten werden geladen...</div>
-  </div>
-</section>
+<div id="performanceSwipeCarousel" class="performance-swipe-carousel" aria-label="Performance-Kacheln">
+  <div class="performance-swipe-viewport">
+    <div id="performanceSwipeTrack" class="performance-swipe-track">
+      <section class="glass-card chart-card compact-intraday-card performance-swipe-panel">
+        <div class="chart-header">
+          <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Intraday Delta</div></div>
+          <div class="chart-unit">€</div>
+        </div>
+        <div id="compactIntradayList" class="compact-intraday-list">
+          <div class="chart-loading">Daten werden geladen...</div>
+        </div>
+      </section>
 
-<section class="glass-card chart-card compact-intraday-card">
-      <div class="chart-header">
-        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Woche</div></div>
-        <div class="chart-unit">€</div>
-      </div>
-      <div id="weeklyOnlyList" class="compact-intraday-list"><div class="chart-loading">Daten werden geladen...</div></div>
-    </section>
+      <section class="glass-card chart-card compact-intraday-card performance-swipe-panel">
+        <div class="chart-header">
+          <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Woche</div></div>
+          <div class="chart-unit">€</div>
+        </div>
+        <div id="weeklyOnlyList" class="compact-intraday-list"><div class="chart-loading">Daten werden geladen...</div></div>
+      </section>
+    </div>
+  </div>
+  <div class="performance-swipe-dots" aria-label="Kachel auswählen">
+    <button type="button" class="performance-swipe-dot is-active" aria-label="Intraday Delta anzeigen" aria-pressed="true"></button>
+    <button type="button" class="performance-swipe-dot" aria-label="Woche anzeigen" aria-pressed="false"></button>
+  </div>
+</div>
 
 <section class="glass-card chart-card trend-graph-card">
   <div class="chart-header">
@@ -2087,6 +2103,48 @@ function hideError() {
 /* =========================================================
        START
        ========================================================= */
+        function initializePerformanceSwiper() {
+          const carousel = document.getElementById("performanceSwipeCarousel");
+          const track = document.getElementById("performanceSwipeTrack");
+          const dots = Array.from(document.querySelectorAll(".performance-swipe-dot"));
+          if (!carousel || !track || !dots.length) return;
+
+          let activeIndex = 0;
+          let startX = 0;
+          let startY = 0;
+
+          function showPanel(index) {
+            activeIndex = Math.max(0, Math.min(index, dots.length - 1));
+            track.style.transform = "translateX(" + (-activeIndex * 50) + "%)";
+            dots.forEach(function(dot, dotIndex) {
+              const isActive = dotIndex === activeIndex;
+              dot.classList.toggle("is-active", isActive);
+              dot.setAttribute("aria-pressed", isActive ? "true" : "false");
+            });
+          }
+
+          carousel.addEventListener("pointerdown", function(event) {
+            startX = event.clientX;
+            startY = event.clientY;
+          });
+
+          carousel.addEventListener("pointerup", function(event) {
+            const deltaX = event.clientX - startX;
+            const deltaY = event.clientY - startY;
+            if (Math.abs(deltaX) < 42 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+            showPanel(activeIndex + (deltaX < 0 ? 1 : -1));
+          });
+
+          dots.forEach(function(dot, index) {
+            dot.addEventListener("click", function() {
+              showPanel(index);
+            });
+          });
+
+          showPanel(0);
+        }
+
+        initializePerformanceSwiper();
         loadDashboard();
 
         window.setInterval(function() {

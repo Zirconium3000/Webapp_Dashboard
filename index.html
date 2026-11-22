@@ -272,6 +272,15 @@
         rgba(84,245,157,0.80);
     }
 
+    .red-led-card .indicator {
+      background: #ff5169;
+      box-shadow: 0 0 12px rgba(255,81,105,0.80);
+    }
+
+    .dashboard-hidden-card {
+      display: none !important;
+    }
+
 
     .main-value {
       display: flex;
@@ -898,7 +907,7 @@
 
       <div class="header-small">
         LIVE DASHBOARD
-        <span class="header-version">V0.03</span>
+        <span class="header-version">V0.04</span>
       </div>
 
       <h1 class="header-title">
@@ -973,16 +982,9 @@
 
         </section>
 
-<section class="glass-card chart-card standalone-card">
-      <div class="chart-header">
-        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Intraday Delta</div></div>
-        <div class="chart-unit">€</div>
-      </div>
-      <div id="intradayOnlyChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
-    </section>
 <section class="glass-card chart-card compact-intraday-card">
   <div class="chart-header">
-    <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Intraday Delta · kompakt</div></div>
+    <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Intraday Delta</div></div>
     <div class="chart-unit">€</div>
   </div>
   <div id="compactIntradayList" class="compact-intraday-list">
@@ -990,12 +992,12 @@
   </div>
 </section>
 
-<section class="glass-card chart-card standalone-card">
+<section class="glass-card chart-card compact-intraday-card">
       <div class="chart-header">
         <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Woche</div></div>
         <div class="chart-unit">€</div>
       </div>
-      <div id="weeklyOnlyChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
+      <div id="weeklyOnlyList" class="compact-intraday-list"><div class="chart-loading">Daten werden geladen...</div></div>
     </section>
 
 <section class="glass-card chart-card portfolio-card">
@@ -1035,7 +1037,7 @@
       </div>
     </section>
 
-<section class="glass-card chart-card combined-chart-card">
+<section class="glass-card chart-card combined-chart-card red-led-card dashboard-hidden-card">
 
 
       <div class="chart-header">
@@ -1077,7 +1079,7 @@
 
     </section>
 
-<section class="glass-card chart-card portfolio-card">
+<section class="glass-card chart-card portfolio-card red-led-card dashboard-hidden-card">
       <div class="chart-header">
         <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">YTD</div></div>
         <div class="chart-unit">€</div>
@@ -1090,7 +1092,7 @@
       <div id="ytdChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
     </section>
 
-<section class="glass-card chart-card portfolio-card">
+<section class="glass-card chart-card portfolio-card red-led-card dashboard-hidden-card">
       <div class="chart-header">
         <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Gesamt</div></div>
         <div class="chart-unit">€</div>
@@ -1101,6 +1103,14 @@
         <span id="totalPortfolioPercentage" class="portfolio-total-percent neutral">–</span>
       </div>
       <div id="totalChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
+    </section>
+
+<section class="glass-card chart-card standalone-card red-led-card dashboard-hidden-card">
+      <div class="chart-header">
+        <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Intraday Delta</div></div>
+        <div class="chart-unit">€</div>
+      </div>
+      <div id="intradayOnlyChart" class="performance-chart"><div class="chart-loading">Daten werden geladen...</div></div>
     </section>
 
 
@@ -1190,8 +1200,8 @@ function loadDashboard() {
       renderPortfolioDonut(data.totalData, data.totalPortfolio, data.totalPortfolioPercentage, "total");
       renderCombinedChart(data.chartData, data.weeklyData);
       renderStandalonePeriodChart("intradayOnlyChart", data.chartData, "intraday");
-      renderCompactIntraday(data.chartData);
-      renderStandalonePeriodChart("weeklyOnlyChart", data.weeklyData, "week");
+      renderCompactPeriod(data.chartData, "compactIntradayList", "intraday");
+      renderCompactPeriod(data.weeklyData, "weeklyOnlyList", "week");
     })
     .catch(function(error) {
       showError("Daten konnten nicht geladen werden: " + error.message);
@@ -1564,8 +1574,8 @@ function renderPerformanceBreakdown(containerId, data) {
   });
   chart.innerHTML = html;
 }
-function renderCompactIntraday(data) {
-  const list = document.getElementById("compactIntradayList");
+function renderCompactPeriod(data, listId, period) {
+  const list = document.getElementById(listId);
   if (!data || !data.length) {
     list.innerHTML = '<div class="chart-loading">Keine Daten vorhanden</div>';
     return;
@@ -1579,12 +1589,13 @@ function renderCompactIntraday(data) {
 
   let html = '';
   data.forEach(function(item) {
-    const value = Number(item.value) || 0;
+    const value = period === "week" ? Number(item.performance) || 0 : Number(item.value) || 0;
     const percent = Number(item.percentage) || 0;
     const cls = value > 0 ? 'positive' : value < 0 ? 'negative' : 'neutral';
     const barClass = percent > 0 ? 'compact-bar-positive' : 'compact-bar-negative';
     const barWidth = Math.abs(percent) / maxPercent * 50;
     const bar = percent === 0 ? '' : '<span class="' + barClass + '" style="width:' + barWidth + '%"></span>';
+    const previousLabel = period === "week" ? "Freitag" : "Vortag";
 
     html += '<div class="compact-intraday-row">' +
       '<div class="compact-intraday-main">' +
@@ -1592,7 +1603,7 @@ function renderCompactIntraday(data) {
         '<span class="compact-intraday-value ' + cls + '">' + formatSignedEuro(value) +
           ' (' + formatSignedPercent(percent / 100) + ')</span>' +
       '</div>' +
-      '<div class="compact-intraday-prices">Vortag: ' + formatNumber(item.previousPrice) +
+      '<div class="compact-intraday-prices">' + previousLabel + ': ' + formatNumber(item.previousPrice) +
         ' € <span>·</span> Aktuell: ' + formatNumber(item.currentPrice) + ' €</div>' +
       '<div class="compact-bar-area"><span class="compact-bar-zero"></span>' + bar + '</div>' +
     '</div>';

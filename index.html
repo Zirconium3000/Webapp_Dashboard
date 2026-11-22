@@ -136,6 +136,9 @@
     }
 
     .header-small {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin-bottom: 7px;
 
       font-size: 11px;
@@ -145,6 +148,13 @@
 
       color:
         rgba(255,255,255,0.43);
+    }
+
+    .header-version {
+      color: rgba(255,255,255,0.48);
+      font-size: 10px;
+      font-weight: 550;
+      letter-spacing: 0.6px;
     }
 .header-title {
       margin: 0;
@@ -888,6 +898,7 @@
 
       <div class="header-small">
         LIVE DASHBOARD
+        <span class="header-version">V0.01</span>
       </div>
 
       <h1 class="header-title">

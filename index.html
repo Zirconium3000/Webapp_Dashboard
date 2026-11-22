@@ -868,9 +868,11 @@
     .standalone-row { margin-bottom: 16px; }
     .compact-intraday-card { margin-top: 17px; }
     .compact-intraday-card .chart-header { margin-bottom: 10px; }
-    .performance-swipe-carousel { margin-top: 17px; overflow: hidden; touch-action: pan-y; }
+    .performance-swipe-carousel { margin-top: 17px; touch-action: pan-y; }
+    .performance-swipe-viewport { margin-top: 0; padding: 0; }
     .performance-swipe-track { display: flex; width: 200%; transition: transform 240ms ease; will-change: transform; }
-    .performance-swipe-panel { flex: 0 0 50%; margin-top: 0; }
+    .performance-swipe-panel { flex: 0 0 50%; margin-top: 0; padding: 24px 18px 22px; box-sizing: border-box; }
+    .performance-swipe-panel .chart-header { margin-bottom: 10px; }
     .performance-swipe-dots { display: flex; justify-content: center; gap: 6px; margin-top: 9px; }
     .performance-swipe-dot { width: 6px; height: 6px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,0.28); cursor: pointer; transition: width 180ms ease, background 180ms ease; }
     .performance-swipe-dot.is-active { width: 18px; border-radius: 4px; background: rgba(255,255,255,0.78); }
@@ -952,7 +954,7 @@
 
       <div class="header-small">
         LIVE DASHBOARD
-        <span class="header-version">V0.12</span>
+        <span class="header-version">V0.13</span>
       </div>
 
       <h1 class="header-title">
@@ -1033,9 +1035,9 @@
         </section>
 
 <div id="performanceSwipeCarousel" class="performance-swipe-carousel" aria-label="Performance-Kacheln">
-  <div class="performance-swipe-viewport">
+  <div class="glass-card chart-card performance-swipe-viewport">
     <div id="performanceSwipeTrack" class="performance-swipe-track">
-      <section class="glass-card chart-card compact-intraday-card performance-swipe-panel">
+      <section class="performance-swipe-panel">
         <div class="chart-header">
           <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Intraday Delta</div></div>
           <div class="chart-unit">€</div>
@@ -1045,7 +1047,7 @@
         </div>
       </section>
 
-      <section class="glass-card chart-card compact-intraday-card performance-swipe-panel">
+      <section class="performance-swipe-panel">
         <div class="chart-header">
           <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">Woche</div></div>
           <div class="chart-unit">€</div>

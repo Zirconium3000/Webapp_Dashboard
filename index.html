@@ -928,6 +928,525 @@
     .previous-week-dates { color: rgba(255,255,255,0.48); font-size: 8px; white-space: nowrap; }
     .previous-week-tile strong { max-width: 100%; overflow: hidden; font-size: 11px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
+    /* =========================================================
+       SIDE-MENU & AUTHENTIFIZIERUNG (LIQUID GLASS)
+       ========================================================= */
+
+    .header-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 7px;
+    }
+
+    .menu-trigger-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      cursor: pointer;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 4px 14px rgba(0, 0, 0, 0.2);
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .menu-trigger-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.32);
+      transform: translateY(-1px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 6px 18px rgba(0, 0, 0, 0.28);
+    }
+    .menu-trigger-btn:active {
+      transform: scale(0.96);
+    }
+
+    .menu-auth-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid #080c18;
+      background: #ff5169;
+      box-shadow: 0 0 8px rgba(255, 81, 105, 0.7);
+      transition: all 0.3s ease;
+    }
+    .menu-auth-badge.is-authenticated {
+      background: #53faa2;
+      box-shadow: 0 0 8px rgba(83, 250, 162, 0.7);
+    }
+
+    .side-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 18, 0.62);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.32s ease;
+      z-index: 9998;
+    }
+    .side-menu-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .side-menu-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 410px;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(155deg, rgba(16, 22, 42, 0.94), rgba(7, 10, 22, 0.96));
+      border-left: 1px solid rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(36px) saturate(170%);
+      -webkit-backdrop-filter: blur(36px) saturate(170%);
+      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.55);
+      z-index: 9999;
+      transform: translateX(100%);
+      transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+    .side-menu-drawer.is-open {
+      transform: translateX(0);
+    }
+
+    .menu-light {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(65px);
+      pointer-events: none;
+    }
+    .menu-light-one {
+      width: 200px;
+      height: 200px;
+      top: -60px;
+      right: -40px;
+      background: rgba(0, 145, 255, 0.35);
+    }
+    .menu-light-two {
+      width: 220px;
+      height: 220px;
+      bottom: 10%;
+      left: -80px;
+      background: rgba(174, 66, 255, 0.22);
+    }
+
+    .menu-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      z-index: 2;
+    }
+
+    .menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: max(24px, env(safe-area-inset-top)) 22px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .menu-kicker {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      color: rgba(255, 255, 255, 0.48);
+      margin-bottom: 4px;
+    }
+    .menu-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+
+    .menu-close-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.07);
+      color: rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      transition: all 0.2s ease;
+    }
+    .menu-close-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      transform: scale(1.05);
+    }
+
+    .menu-content {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 20px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+    .menu-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    .menu-content::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .menu-card {
+      margin-top: 0;
+      padding: 18px 16px;
+      border-radius: 20px;
+    }
+
+    .menu-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .auth-pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 650;
+      letter-spacing: 0.3px;
+    }
+    .auth-pill-badge.is-connected {
+      background: rgba(83, 250, 162, 0.14);
+      color: #53faa2;
+      border: 1px solid rgba(83, 250, 162, 0.32);
+    }
+    .auth-pill-badge.is-locked {
+      background: rgba(255, 81, 105, 0.14);
+      color: #ff6e82;
+      border: 1px solid rgba(255, 81, 105, 0.32);
+    }
+
+    .menu-card-desc {
+      margin: 0 0 14px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255, 255, 255, 0.62);
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .auth-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .auth-text-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 44px 0 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .auth-text-input:focus {
+      background: rgba(255, 255, 255, 0.10);
+      border-color: rgba(58, 142, 255, 0.85);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(58, 142, 255, 0.25);
+    }
+    .auth-text-input::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    .auth-eye-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      color: rgba(255, 255, 255, 0.52);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: color 0.18s ease;
+    }
+    .auth-eye-btn:hover {
+      color: #ffffff;
+    }
+
+    .auth-checkbox-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+      margin: 2px 0 4px;
+    }
+    .auth-checkbox-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+    .auth-checkbox-custom {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      margin-top: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.07);
+      color: #ffffff;
+      transition: all 0.2s ease;
+    }
+    .auth-checkbox-custom svg {
+      opacity: 0;
+      transform: scale(0.6);
+      transition: all 0.18s ease;
+    }
+    .auth-checkbox-input:checked + .auth-checkbox-custom {
+      background: rgba(58, 142, 255, 0.85);
+      border-color: rgba(58, 142, 255, 1);
+      box-shadow: 0 0 10px rgba(58, 142, 255, 0.45);
+    }
+    .auth-checkbox-input:checked + .auth-checkbox-custom svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .auth-checkbox-text strong {
+      display: block;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 600;
+    }
+    .auth-checkbox-text small {
+      display: block;
+      margin-top: 1px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.48);
+    }
+
+    .auth-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .auth-btn-primary {
+      flex: 1 1 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 42px;
+      padding: 0 16px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(58, 142, 255, 0.85), rgba(30, 95, 215, 0.85));
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 650;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(58, 142, 255, 0.35);
+      transition: all 0.2s ease;
+    }
+    .auth-btn-primary:hover {
+      background: linear-gradient(135deg, rgba(78, 155, 255, 0.95), rgba(42, 110, 235, 0.95));
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(58, 142, 255, 0.45);
+    }
+    .auth-btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .auth-btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 42px;
+      padding: 0 14px;
+      border: 1px solid rgba(255, 81, 105, 0.35);
+      border-radius: 12px;
+      background: rgba(255, 81, 105, 0.12);
+      color: #ff6e82;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .auth-btn-secondary:hover {
+      background: rgba(255, 81, 105, 0.22);
+      border-color: rgba(255, 81, 105, 0.55);
+      color: #ffffff;
+    }
+
+    .auth-feedback {
+      font-size: 11px;
+      min-height: 16px;
+      line-height: 1.4;
+      transition: all 0.2s ease;
+    }
+    .auth-feedback.is-success {
+      color: #53faa2;
+    }
+    .auth-feedback.is-error {
+      color: #ff6e82;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .setting-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+    .setting-item-info strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.92);
+    }
+    .setting-item-info small {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.48);
+    }
+
+    .setting-select {
+      height: 34px;
+      padding: 0 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.20);
+      border-radius: 9px;
+      color: #ffffff;
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .setting-select:focus {
+      border-color: rgba(58, 142, 255, 0.8);
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .setting-select option {
+      background: #141a2b;
+      color: #ffffff;
+    }
+
+    .setting-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 34px;
+      padding: 0 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 9px;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .setting-action-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+    }
+    .setting-action-btn.is-spinning svg {
+      animation: spinSync 0.8s linear infinite;
+    }
+    @keyframes spinSync {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .menu-info-card {
+      margin-bottom: 6px;
+    }
+    .menu-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .menu-info-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+    .menu-info-row span:first-child {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .menu-info-row span:last-child, .menu-info-row strong {
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .menu-footer {
+      padding: 14px 20px max(18px, env(safe-area-inset-bottom));
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 1.2px;
+      color: rgba(255, 255, 255, 0.32);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.15);
+    }
 </style>
 
 </head>
@@ -952,9 +1471,18 @@
 
     <header class="header">
 
-      <div class="header-small">
-        LIVE DASHBOARD
-        <span class="header-version">V0.13</span>
+      <div class="header-top-row">
+        <div class="header-small">
+          LIVE DASHBOARD
+        </div>
+        <button id="openMenuBtn" class="menu-trigger-btn" aria-label="Menü & Einstellungen öffnen" title="Menü & Einstellungen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="17" x2="20" y2="17"></line>
+          </svg>
+          <span id="menuAuthBadge" class="menu-auth-badge" title="Authentifizierungsstatus"></span>
+        </button>
       </div>
 
       <h1 class="header-title">
@@ -1225,6 +1753,164 @@
     </div>
 
 
+  <!-- =====================================================
+       SIDE-MENU BACKDROP & DRAWER (LIQUID GLASS)
+       ===================================================== -->
+  <div id="sideMenuBackdrop" class="side-menu-backdrop" aria-hidden="true"></div>
+
+  <aside id="sideMenuDrawer" class="side-menu-drawer" aria-label="Einstellungen und Menü" aria-hidden="true">
+    <div class="menu-light menu-light-one"></div>
+    <div class="menu-light menu-light-two"></div>
+
+    <div class="menu-container">
+      <div class="menu-header">
+        <div>
+          <div class="menu-kicker">
+            <span class="indicator"></span>
+            KONTROLLZENTRUM
+          </div>
+          <h2 class="menu-title">Einstellungen</h2>
+        </div>
+        <button id="closeMenuBtn" class="menu-close-btn" aria-label="Menü schließen">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="menu-content">
+        <!-- Sektion 1: Authentifizierung & Zugriff -->
+        <section class="glass-card menu-card">
+          <div class="menu-card-header">
+            <div class="card-label">
+              <span class="indicator"></span>
+              SICHERHEIT & ZUGANG
+            </div>
+            <span id="authBadgeStatus" class="auth-pill-badge is-locked">Nicht verbunden</span>
+          </div>
+
+          <p class="menu-card-desc">
+            Gib deinen Zugriffsschlüssel (PIN oder Passwort) ein, um die Daten aus Google Sheets abzurufen.
+          </p>
+
+          <form id="authForm" class="auth-form" onsubmit="return false;">
+            <div class="auth-input-group">
+              <div class="auth-input-wrapper">
+                <input
+                  type="password"
+                  id="authKeyInput"
+                  class="auth-text-input"
+                  placeholder="PIN / Schlüssel eingeben..."
+                  autocomplete="current-password"
+                  spellcheck="false"
+                />
+                <button
+                  type="button"
+                  id="togglePasswordVisibility"
+                  class="auth-eye-btn"
+                  aria-label="Passwort anzeigen/verbergen"
+                >
+                  <svg id="eyeIconOpen" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <svg id="eyeIconClosed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <label class="auth-checkbox-label" for="rememberDeviceCheckbox">
+              <input type="checkbox" id="rememberDeviceCheckbox" class="auth-checkbox-input" checked />
+              <span class="auth-checkbox-custom">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </span>
+              <span class="auth-checkbox-text">
+                <strong>Auf diesem Gerät merken</strong>
+                <small>Bleibt dauerhaft im Browser dieses Geräts angemeldet</small>
+              </span>
+            </label>
+
+            <div class="auth-actions">
+              <button type="submit" id="saveAuthBtn" class="auth-btn-primary">
+                <span>Anmelden & Verbinden</span>
+              </button>
+              <button type="button" id="logoutAuthBtn" class="auth-btn-secondary" style="display:none;">
+                <span>Abmelden</span>
+              </button>
+            </div>
+
+            <div id="authFeedbackMsg" class="auth-feedback" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <!-- Sektion 2: Dashboard-Optionen (Modular für spätere Features) -->
+        <section class="glass-card menu-card">
+          <div class="card-label">
+            <span class="indicator"></span>
+            DASHBOARD-OPTIONEN
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <strong>Aktualisierungsintervall</strong>
+              <small>Automatische Datenabfrage</small>
+            </div>
+            <select id="refreshIntervalSelect" class="setting-select">
+              <option value="10000" selected>10 Sekunden (Live)</option>
+              <option value="30000">30 Sekunden</option>
+              <option value="60000">1 Minute</option>
+              <option value="0">Manuell (Pause)</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-item-info">
+              <strong>Manueller Abruf</strong>
+              <small>Sofort neue Daten anfordern</small>
+            </div>
+            <button type="button" id="manualSyncBtn" class="setting-action-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              <span>Sync</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Sektion 3: Info & System -->
+        <section class="glass-card menu-card menu-info-card">
+          <div class="card-label">
+            <span class="indicator"></span>
+            SYSTEM-INFO
+          </div>
+          <div class="menu-info-row">
+            <span>App-Version</span>
+            <strong id="appVersionDisplay" class="font-tabular">V0.14</strong>
+          </div>
+          <div class="menu-info-row">
+            <span>Backend</span>
+            <span>Google Apps Script</span>
+          </div>
+          <div class="menu-info-row">
+            <span>Letzte Aktualisierung</span>
+            <span id="menuLastUpdateTime" class="font-tabular">–</span>
+          </div>
+        </section>
+      </div>
+
+      <div class="menu-footer">
+        GOOGLE SHEETS · LIQUID GLASS DASHBOARD
+      </div>
+    </div>
+  </aside>
   </main>
 
 <script>
@@ -1236,7 +1922,11 @@
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmNNAJbM87_fuN2IBixqvKOC4NHGqMXbV9IfPbQfG2n7gu-bLVSwGj0oupKT-MbkVwkw/exec";
 let dashboardRequestId = 0;
 
-function loadDashboard() {
+let currentAuthToken = localStorage.getItem("dashboard_auth_token") || sessionStorage.getItem("dashboard_session_token") || "";
+let refreshIntervalMs = Number(localStorage.getItem("dashboard_refresh_interval")) || 10000;
+let refreshTimer = null;
+
+function loadDashboard(isManual) {
   hideError();
 
   if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("/exec") === -1) {
@@ -1244,16 +1934,39 @@ function loadDashboard() {
     return;
   }
 
-  fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), {
+  if (!currentAuthToken) {
+    setAuthUIState(false);
+    showError("🔒 Zugriff geschützt: Bitte öffne das Menü (oben rechts), um deinen Zugriffsschlüssel einzugeben.");
+    return;
+  }
+
+  const tokenParam = "&token=" + encodeURIComponent(currentAuthToken);
+
+  fetch(APPS_SCRIPT_URL + "?t=" + Date.now() + tokenParam, {
     method: "GET",
     cache: "no-store"
   })
     .then(function(response) {
+      if (response.status === 401 || response.status === 403) {
+        throw new Error("AUTH_REQUIRED");
+      }
       if (!response.ok) throw new Error("HTTP " + response.status);
       return response.json();
     })
     .then(function(data) {
+      if (data.error === "Unauthorized" || (data.message && data.message.indexOf("Zugriffsschlüssel") !== -1)) {
+        setAuthUIState(false, "Falscher Zugriffsschlüssel.");
+        showError("🔒 Authentifizierung fehlgeschlagen: Bitte prüfe deinen Schlüssel im Menü.");
+        return;
+      }
       if (data.error) throw new Error(data.error);
+
+      setAuthUIState(true);
+      const updateEl = document.getElementById("menuLastUpdateTime");
+      if (updateEl) {
+        const now = new Date();
+        updateEl.innerText = ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2) + ":" + ("0" + now.getSeconds()).slice(-2);
+      }
 
       const intradayElement = document.getElementById("intradayDelta");
       intradayElement.innerText = formatNumber(data.intradayDelta);
@@ -1286,7 +1999,12 @@ function loadDashboard() {
       renderPreviousWeekTiles(data.trendData);
     })
     .catch(function(error) {
-      showError("Daten konnten nicht geladen werden: " + error.message);
+      if (error.message === "AUTH_REQUIRED") {
+        setAuthUIState(false, "Authentifizierung erforderlich.");
+        showError("🔒 Authentifizierung erforderlich. Bitte öffne das Menü.");
+      } else {
+        showError("Daten konnten nicht geladen werden: " + error.message);
+      }
     });
 }
 
@@ -2146,14 +2864,181 @@ function hideError() {
           showPanel(0);
         }
 
-        initializePerformanceSwiper();
-        loadDashboard();
+        /* =========================================================
+           SIDE-MENU & AUTH CONTROLLER
+           ========================================================= */
 
-        window.setInterval(function() {
-          if (!document.hidden) {
-            loadDashboard();
+        function initializeSideMenu() {
+          const backdrop = document.getElementById("sideMenuBackdrop");
+          const drawer = document.getElementById("sideMenuDrawer");
+          const openBtn = document.getElementById("openMenuBtn");
+          const closeBtn = document.getElementById("closeMenuBtn");
+          const authForm = document.getElementById("authForm");
+          const authInput = document.getElementById("authKeyInput");
+          const rememberCheck = document.getElementById("rememberDeviceCheckbox");
+          const toggleEyeBtn = document.getElementById("togglePasswordVisibility");
+          const eyeOpen = document.getElementById("eyeIconOpen");
+          const eyeClosed = document.getElementById("eyeIconClosed");
+          const logoutBtn = document.getElementById("logoutAuthBtn");
+          const intervalSelect = document.getElementById("refreshIntervalSelect");
+          const manualSyncBtn = document.getElementById("manualSyncBtn");
+
+          // Initialen Zustand befüllen
+          if (currentAuthToken) {
+            authInput.value = currentAuthToken;
+            setAuthUIState(true);
+          } else {
+            setAuthUIState(false);
           }
-        }, 10000);
+
+          const savedRemember = localStorage.getItem("dashboard_remember_device");
+          if (savedRemember !== null) {
+            rememberCheck.checked = savedRemember === "true";
+          }
+
+          if (intervalSelect) {
+            intervalSelect.value = String(refreshIntervalMs);
+            intervalSelect.addEventListener("change", function() {
+              refreshIntervalMs = Number(this.value) || 0;
+              localStorage.setItem("dashboard_refresh_interval", String(refreshIntervalMs));
+              startAutoRefresh();
+            });
+          }
+
+          function openMenu() {
+            drawer.classList.add("is-open");
+            backdrop.classList.add("is-open");
+            drawer.setAttribute("aria-hidden", "false");
+            backdrop.setAttribute("aria-hidden", "false");
+          }
+
+          function closeMenu() {
+            drawer.classList.remove("is-open");
+            backdrop.classList.remove("is-open");
+            drawer.setAttribute("aria-hidden", "true");
+            backdrop.setAttribute("aria-hidden", "true");
+          }
+
+          if (openBtn) openBtn.addEventListener("click", openMenu);
+          if (closeBtn) closeBtn.addEventListener("click", closeMenu);
+          if (backdrop) backdrop.addEventListener("click", closeMenu);
+
+          document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape" && drawer.classList.contains("is-open")) {
+              closeMenu();
+            }
+          });
+
+          // Passwort verbergen / anzeigen
+          if (toggleEyeBtn) {
+            toggleEyeBtn.addEventListener("click", function() {
+              const isPassword = authInput.type === "password";
+              authInput.type = isPassword ? "text" : "password";
+              eyeOpen.style.display = isPassword ? "none" : "block";
+              eyeClosed.style.display = isPassword ? "block" : "none";
+            });
+          }
+
+          // Speichern / Anmelden
+          if (authForm) {
+            authForm.addEventListener("submit", function(e) {
+              e.preventDefault();
+              const token = (authInput.value || "").trim();
+              if (!token) {
+                setAuthUIState(false, "Bitte gib einen Schlüssel ein.");
+                authInput.focus();
+                return;
+              }
+
+              currentAuthToken = token;
+              const remember = rememberCheck.checked;
+              localStorage.setItem("dashboard_remember_device", remember ? "true" : "false");
+
+              if (remember) {
+                localStorage.setItem("dashboard_auth_token", token);
+                sessionStorage.removeItem("dashboard_session_token");
+              } else {
+                sessionStorage.setItem("dashboard_session_token", token);
+                localStorage.removeItem("dashboard_auth_token");
+              }
+
+              setAuthUIState(true, "Schlüssel gespeichert! Daten werden geladen...");
+              loadDashboard(true);
+            });
+          }
+
+          // Abmelden
+          if (logoutBtn) {
+            logoutBtn.addEventListener("click", function() {
+              currentAuthToken = "";
+              localStorage.removeItem("dashboard_auth_token");
+              sessionStorage.removeItem("dashboard_session_token");
+              authInput.value = "";
+              setAuthUIState(false, "Erfolgreich abgemeldet.");
+              hideError();
+              showError("🔒 Abgemeldet. Öffne das Menü, um dich wieder anzumelden.");
+            });
+          }
+
+          // Manueller Sync
+          if (manualSyncBtn) {
+            manualSyncBtn.addEventListener("click", function() {
+              manualSyncBtn.classList.add("is-spinning");
+              loadDashboard(true);
+              setTimeout(function() {
+                manualSyncBtn.classList.remove("is-spinning");
+              }, 900);
+            });
+          }
+        }
+
+        function setAuthUIState(isAuthenticated, message) {
+          const badge = document.getElementById("authBadgeStatus");
+          const menuDot = document.getElementById("menuAuthBadge");
+          const saveBtn = document.getElementById("saveAuthBtn");
+          const logoutBtn = document.getElementById("logoutAuthBtn");
+          const feedback = document.getElementById("authFeedbackMsg");
+
+          if (!badge || !menuDot) return;
+
+          if (isAuthenticated) {
+            badge.className = "auth-pill-badge is-connected";
+            badge.innerText = "Verbunden";
+            menuDot.classList.add("is-authenticated");
+            if (logoutBtn) logoutBtn.style.display = "inline-flex";
+            if (saveBtn) saveBtn.querySelector("span").innerText = "Schlüssel aktualisieren";
+            if (feedback) {
+              feedback.className = "auth-feedback is-success";
+              feedback.innerText = message || "";
+            }
+          } else {
+            badge.className = "auth-pill-badge is-locked";
+            badge.innerText = "Nicht verbunden";
+            menuDot.classList.remove("is-authenticated");
+            if (logoutBtn) logoutBtn.style.display = "none";
+            if (saveBtn) saveBtn.querySelector("span").innerText = "Anmelden & Verbinden";
+            if (feedback) {
+              feedback.className = "auth-feedback is-error";
+              feedback.innerText = message || "";
+            }
+          }
+        }
+
+        function startAutoRefresh() {
+          if (refreshTimer) clearInterval(refreshTimer);
+          if (refreshIntervalMs > 0) {
+            refreshTimer = setInterval(function() {
+              if (!document.hidden && currentAuthToken) {
+                loadDashboard();
+              }
+            }, refreshIntervalMs);
+          }
+        }
+
+        initializePerformanceSwiper();
+        initializeSideMenu();
+        loadDashboard();
+        startAutoRefresh();
 
   </script>
 

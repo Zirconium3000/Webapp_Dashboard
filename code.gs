@@ -6,6 +6,11 @@
 // Nur die ID zwischen /d/ und /edit verwenden.
 const SPREADSHEET_ID = '1zzrDZmACN5ov2uqyBvV1TULH8tmyZ6eUxHt_FBcguH0';
 
+// Geheimer Zugriffsschlüssel (PIN oder Passwort)
+// Ändere diesen Wert nach Wunsch (z. B. '1234' oder dein eigenes Passwort).
+// Wenn leer (''), ist der Zugriff ungeschützt.
+const AUTH_TOKEN = '1234';
+
 
 // ============================================================
 // WEB-APP START
@@ -13,6 +18,17 @@ const SPREADSHEET_ID = '1zzrDZmACN5ov2uqyBvV1TULH8tmyZ6eUxHt_FBcguH0';
 
 function doGet(e) {
   try {
+    const providedToken = e && e.parameter ? e.parameter.token : '';
+
+    // Authentifizierung prüfen (Möglichkeit 1)
+    if (AUTH_TOKEN && providedToken !== AUTH_TOKEN) {
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          error: 'Unauthorized',
+          message: 'Ungültiger oder fehlender Zugriffsschlüssel (PIN / Token).'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     const data = getDashboardData();
     const jsonOutput = JSON.stringify(data);
     const callback = e && e.parameter ? e.parameter.callback : '';

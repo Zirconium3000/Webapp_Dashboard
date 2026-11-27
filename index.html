@@ -921,6 +921,13 @@
     .trend-stock-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; }
     .trend-stock-option-name { min-width: 0; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
     .trend-stock-option-total { margin-left: auto; flex: 0 0 auto; font-size: 9px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .intraday-selected-chart { position: relative; width: 100%; height: 190px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+    .intraday-selected-chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    .intraday-axis-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 4px 4px 12px; font-size: 10px; color: rgba(255,255,255,0.45); font-variant-numeric: tabular-nums; }
+    .intraday-tooltip { position: absolute; top: 6px; left: 8px; padding: 4px 9px; border-radius: 8px; background: rgba(12, 18, 36, 0.90); border: 1px solid rgba(255,255,255,0.20); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; color: #ffffff; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 3; }
+    .intraday-tooltip.is-visible { opacity: 1; }
+    .trend-stock-option.is-unconfigured { opacity: 0.48; }
+    .intraday-ls-tag { font-size: 8px; padding: 1px 5px; border-radius: 5px; background: rgba(58, 142, 255, 0.22); color: #8ec5ff; font-weight: 700; letter-spacing: 0.4px; flex: 0 0 auto; }
     .previous-weeks-summary { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.12); }
     .previous-week-tiles { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; margin-top: 9px; }
     .previous-week-tile { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; padding: 9px 4px; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: rgba(255,255,255,0.045); text-align: center; }
@@ -1608,6 +1615,31 @@
   </div>
 </div>
 
+<section class="glass-card chart-card intraday-graph-card">
+  <div class="chart-header">
+    <div>
+      <div class="card-label"><span class="indicator"></span>ECHTZEIT · L&S</div>
+      <div class="chart-title">Intraday-Kurs</div>
+    </div>
+    <div class="chart-unit">€</div>
+  </div>
+  <div class="trend-graph-summary">
+    <div><span>Aktueller Kurs</span><strong id="intradayGraphPrice">–</strong></div>
+    <div><span>vs. Vortag</span><strong id="intradayGraphChange">–</strong></div>
+  </div>
+  <div class="trend-selected-title">
+    <span id="intradaySelectedName">Titel auswählen</span>
+    <strong id="intradaySelectedTime">–</strong>
+  </div>
+  <div id="intradaySelectedChart" class="intraday-selected-chart"><div class="chart-loading">Daten werden geladen...</div></div>
+  <div class="intraday-axis-row">
+    <span id="intradayAxisStart">–</span>
+    <span id="intradayAxisRange">–</span>
+    <span id="intradayAxisEnd">–</span>
+  </div>
+  <div id="intradayStockPicker" class="trend-stock-picker"><div class="chart-loading">Daten werden geladen...</div></div>
+</section>
+
 <section class="glass-card chart-card trend-graph-card">
   <div class="chart-header">
     <div><div class="card-label"><span class="indicator"></span>PERFORMANCE</div><div class="chart-title">4 Wochen</div></div>
@@ -1911,7 +1943,7 @@
           </div>
           <div class="menu-info-row">
             <span>App-Version</span>
-            <strong id="appVersionDisplay" class="font-tabular">V0.16</strong>
+            <strong id="appVersionDisplay" class="font-tabular">V0.17</strong>
           </div>
           <div class="menu-info-row">
             <span>Backend</span>
@@ -2015,6 +2047,7 @@ function loadDashboard(isManual) {
       renderCompactPeriod(data.weeklyData, "weeklyOnlyList", "week");
       renderTrendGraph(data.trendData);
       renderPreviousWeekTiles(data.trendData);
+      renderIntradayStockPicker(data.ytdData, data.lsIds || {});
     })
     .catch(function(error) {
       if (error.message === "AUTH_REQUIRED") {
@@ -2562,6 +2595,257 @@ function renderSelectedTrendTicker() {
     button.classList.toggle("is-selected", selected);
     button.setAttribute("aria-pressed", selected ? "true" : "false");
   });
+}
+
+let intradayLsIds = {};
+let selectedIntradayStockName = "";
+let intradayRequestId = 0;
+
+function formatClockTime(tsMs) {
+  if (!tsMs) return "–";
+  const d = new Date(Number(tsMs));
+  if (isNaN(d.getTime())) return "–";
+  return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+}
+
+function renderIntradayStockPicker(ytdData, lsIds) {
+  const picker = document.getElementById("intradayStockPicker");
+  if (!picker) return;
+  intradayLsIds = lsIds || {};
+
+  const items = (ytdData || []).filter(function(item) {
+    return item && String(item.name || "").trim() !== "";
+  });
+
+  if (!items.length) {
+    document.getElementById("intradaySelectedChart").innerHTML = '<div class="chart-loading">Keine YTD-Titel gefunden</div>';
+    picker.innerHTML = "";
+    return;
+  }
+
+  if (!selectedIntradayStockName || !items.some(function(i) { return i.name === selectedIntradayStockName; })) {
+    const firstConfigured = items.find(function(i) { return Boolean(intradayLsIds[i.name]); });
+    selectedIntradayStockName = (firstConfigured || items[0]).name;
+  }
+
+  picker.innerHTML = items.map(function(item) {
+    const hasLs = Boolean(intradayLsIds[item.name]);
+    const ytdVal = Number(item.value) || 0;
+    const dotColor = ytdVal >= 0 ? "#53faa2" : "#ff5169";
+    const isSelected = item.name === selectedIntradayStockName;
+    return '<button type="button" class="trend-stock-option' + (isSelected ? ' is-selected' : '') + (hasLs ? '' : ' is-unconfigured') + '" data-intraday-name="' + escapeHtml(item.name) + '" aria-pressed="' + (isSelected ? 'true' : 'false') + '">' +
+      '<span class="trend-stock-dot" style="background:' + dotColor + '"></span>' +
+      '<span class="trend-stock-option-name">' + escapeHtml(item.name) + '</span>' +
+      (hasLs ? '<span class="intraday-ls-tag">L&amp;S</span>' : '<span class="trend-stock-option-total neutral">–</span>') +
+    '</button>';
+  }).join("");
+
+  picker.onclick = function(event) {
+    const button = event.target.closest("[data-intraday-name]");
+    if (!button) return;
+    selectedIntradayStockName = button.getAttribute("data-intraday-name") || "";
+    updateIntradayPickerSelection();
+    loadIntradaySeries(selectedIntradayStockName, false);
+  };
+
+  updateIntradayPickerSelection();
+  loadIntradaySeries(selectedIntradayStockName, true);
+}
+
+function updateIntradayPickerSelection() {
+  document.querySelectorAll("#intradayStockPicker .trend-stock-option").forEach(function(button) {
+    const selected = button.getAttribute("data-intraday-name") === selectedIntradayStockName;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+  });
+}
+
+function loadIntradaySeries(stockName, isBackgroundRefresh) {
+  const chartEl = document.getElementById("intradaySelectedChart");
+  if (!stockName || !currentAuthToken) return;
+
+  document.getElementById("intradaySelectedName").innerText = stockName;
+
+  if (!intradayLsIds[stockName]) {
+    document.getElementById("intradayGraphPrice").innerText = "–";
+    const chEl = document.getElementById("intradayGraphChange");
+    chEl.innerText = "Keine ID";
+    setValueColor(chEl, 0);
+    document.getElementById("intradaySelectedTime").innerText = "Nicht konfiguriert";
+    document.getElementById("intradayAxisStart").innerText = "–";
+    document.getElementById("intradayAxisRange").innerText = "–";
+    document.getElementById("intradayAxisEnd").innerText = "–";
+    chartEl.innerHTML = '<div class="chart-loading">Keine L&amp;S-ID für „' + escapeHtml(stockName) + '“ in code.gs hinterlegt.</div>';
+    return;
+  }
+
+  if (!isBackgroundRefresh) {
+    chartEl.innerHTML = '<div class="chart-loading">Lade L&amp;S Intraday-Daten...</div>';
+  }
+
+  const reqId = ++intradayRequestId;
+  const url = APPS_SCRIPT_URL + "?action=intraday&name=" + encodeURIComponent(stockName) + "&t=" + Date.now() + "&token=" + encodeURIComponent(currentAuthToken);
+
+  fetch(url, { method: "GET", cache: "no-store" })
+    .then(function(res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    })
+    .then(function(data) {
+      if (reqId !== intradayRequestId) return;
+      renderIntradaySeriesChart(data);
+    })
+    .catch(function(err) {
+      if (reqId !== intradayRequestId) return;
+      chartEl.innerHTML = '<div class="chart-loading">Abruf fehlgeschlagen: ' + escapeHtml(err.message) + '</div>';
+    });
+}
+
+function renderIntradaySeriesChart(data) {
+  const chartEl = document.getElementById("intradaySelectedChart");
+  const priceEl = document.getElementById("intradayGraphPrice");
+  const changeEl = document.getElementById("intradayGraphChange");
+  const timeEl = document.getElementById("intradaySelectedTime");
+  const axisStartEl = document.getElementById("intradayAxisStart");
+  const axisRangeEl = document.getElementById("intradayAxisRange");
+  const axisEndEl = document.getElementById("intradayAxisEnd");
+
+  if (!data || !data.ok || !Array.isArray(data.points) || !data.points.length) {
+    priceEl.innerText = "–";
+    changeEl.innerText = "–";
+    setValueColor(changeEl, 0);
+    timeEl.innerText = "Keine Daten";
+    axisStartEl.innerText = "–";
+    axisRangeEl.innerText = "–";
+    axisEndEl.innerText = "–";
+    chartEl.innerHTML = '<div class="chart-loading">' + escapeHtml((data && data.error) || "Heute noch keine L&S-Intraday-Daten vorhanden") + '</div>';
+    return;
+  }
+
+  const points = data.points.map(function(pt) {
+    return { ts: Number(pt[0]), price: Number(pt[1]) };
+  }).filter(function(pt) {
+    return !isNaN(pt.ts) && !isNaN(pt.price);
+  });
+
+  if (!points.length) {
+    chartEl.innerHTML = '<div class="chart-loading">Keine gültigen Kurspunkte</div>';
+    return;
+  }
+
+  const last = points[points.length - 1];
+  const first = points[0];
+  const prev = data.previousDay !== null && data.previousDay !== undefined ? Number(data.previousDay) : null;
+  const refPrice = (prev !== null && !isNaN(prev) && prev > 0) ? prev : first.price;
+  const diff = last.price - refPrice;
+  const diffPct = refPrice ? (diff / refPrice) : 0;
+
+  priceEl.innerText = formatNumber(last.price) + " €";
+  setValueColor(priceEl, diff);
+  changeEl.innerText = formatSignedEuro(diff) + " (" + formatSignedPercent(diffPct) + ")";
+  setValueColor(changeEl, diff);
+  timeEl.innerText = "Stand " + formatClockTime(last.ts) + " · " + points.length + " Pkt";
+
+  const prices = points.map(function(p) { return p.price; });
+  let minVal = Math.min.apply(null, prices);
+  let maxVal = Math.max.apply(null, prices);
+  if (prev !== null && !isNaN(prev)) {
+    minVal = Math.min(minVal, prev);
+    maxVal = Math.max(maxVal, prev);
+  }
+  const padVal = (maxVal - minVal) * 0.08 || (maxVal * 0.01) || 1;
+  const yMin = minVal - padVal;
+  const yMax = maxVal + padVal;
+  const ySpan = yMax - yMin || 1;
+
+  const w = 320;
+  const h = 180;
+  const padX = 8;
+  const padTop = 14;
+  const padBottom = 14;
+  const plotW = w - padX * 2;
+  const plotH = h - padTop - padBottom;
+  const tMin = first.ts;
+  const tMax = last.ts;
+  const tSpan = (tMax - tMin) || 1;
+
+  const coords = points.map(function(p, idx) {
+    const x = points.length === 1 ? padX + plotW / 2 : padX + ((p.ts - tMin) / tSpan) * plotW;
+    const y = padTop + (1 - (p.price - yMin) / ySpan) * plotH;
+    return { x: x, y: y, ts: p.ts, price: p.price, idx: idx };
+  });
+
+  const strokeColor = diff > 0 ? "#53faa2" : diff < 0 ? "#ff5169" : "#3a8eff";
+  const lineD = coords.map(function(c, i) {
+    return (i === 0 ? "M" : "L") + c.x.toFixed(2) + " " + c.y.toFixed(2);
+  }).join(" ");
+  const areaD = lineD + " L" + coords[coords.length - 1].x.toFixed(2) + " " + (h - padBottom) + " L" + coords[0].x.toFixed(2) + " " + (h - padBottom) + " Z";
+
+  let prevLineSvg = "";
+  if (prev !== null && !isNaN(prev)) {
+    const prevY = padTop + (1 - (prev - yMin) / ySpan) * plotH;
+    prevLineSvg = '<line x1="' + padX + '" y1="' + prevY.toFixed(2) + '" x2="' + (w - padX) + '" y2="' + prevY.toFixed(2) + '" stroke="rgba(255,255,255,0.34)" stroke-dasharray="4 4" />';
+  }
+
+  const lastCoord = coords[coords.length - 1];
+  chartEl.innerHTML =
+    '<div id="intradayTooltip" class="intraday-tooltip"></div>' +
+    '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="Intraday-Kursverlauf für ' + escapeHtml(data.name || "Titel") + '">' +
+      '<defs>' +
+        '<linearGradient id="intradayAreaGrad" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="' + strokeColor + '" stop-opacity="0.32" />' +
+          '<stop offset="100%" stop-color="' + strokeColor + '" stop-opacity="0.01" />' +
+        '</linearGradient>' +
+      '</defs>' +
+      prevLineSvg +
+      '<path d="' + areaD + '" fill="url(#intradayAreaGrad)" />' +
+      '<path d="' + lineD + '" fill="none" stroke="' + strokeColor + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />' +
+      '<line id="intradayHoverLine" x1="0" y1="' + padTop + '" x2="0" y2="' + (h - padBottom) + '" stroke="rgba(255,255,255,0.35)" stroke-width="1" stroke-dasharray="2 2" style="display:none;" />' +
+      '<circle id="intradayHoverDot" cx="' + lastCoord.x.toFixed(2) + '" cy="' + lastCoord.y.toFixed(2) + '" r="3.5" fill="' + strokeColor + '" stroke="#ffffff" stroke-width="1.5" />' +
+    '</svg>';
+
+  axisStartEl.innerText = formatClockTime(first.ts);
+  axisRangeEl.innerText = "Spanne " + formatNumber(Math.min.apply(null, prices)) + " – " + formatNumber(Math.max.apply(null, prices)) + " €";
+  axisEndEl.innerText = formatClockTime(last.ts);
+
+  const svg = chartEl.querySelector("svg");
+  const tooltip = document.getElementById("intradayTooltip");
+  const hoverLine = document.getElementById("intradayHoverLine");
+  const hoverDot = document.getElementById("intradayHoverDot");
+
+  function showPointAtClientX(clientX) {
+    const rect = svg.getBoundingClientRect();
+    if (!rect.width) return;
+    const relX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) * w;
+    let nearest = coords[0];
+    let bestDist = Math.abs(relX - nearest.x);
+    for (let i = 1; i < coords.length; i++) {
+      const d = Math.abs(relX - coords[i].x);
+      if (d < bestDist) {
+        bestDist = d;
+        nearest = coords[i];
+      }
+    }
+    hoverLine.setAttribute("x1", nearest.x.toFixed(2));
+    hoverLine.setAttribute("x2", nearest.x.toFixed(2));
+    hoverLine.style.display = "block";
+    hoverDot.setAttribute("cx", nearest.x.toFixed(2));
+    hoverDot.setAttribute("cy", nearest.y.toFixed(2));
+    tooltip.innerText = formatClockTime(nearest.ts) + " · " + formatNumber(nearest.price) + " €";
+    tooltip.classList.add("is-visible");
+  }
+
+  function resetHover() {
+    hoverLine.style.display = "none";
+    hoverDot.setAttribute("cx", lastCoord.x.toFixed(2));
+    hoverDot.setAttribute("cy", lastCoord.y.toFixed(2));
+    tooltip.classList.remove("is-visible");
+  }
+
+  svg.addEventListener("pointermove", function(e) { showPointAtClientX(e.clientX); });
+  svg.addEventListener("pointerdown", function(e) { showPointAtClientX(e.clientX); });
+  svg.addEventListener("pointerleave", resetHover);
+  svg.addEventListener("pointercancel", resetHover);
 }
 
 function renderStandalonePeriodChart(containerId, data, period) {

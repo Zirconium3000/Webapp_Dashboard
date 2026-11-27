@@ -11,6 +11,13 @@ const SPREADSHEET_ID = '1zzrDZmACN5ov2uqyBvV1TULH8tmyZ6eUxHt_FBcguH0';
 // Wenn leer (''), ist der Zugriff ungeschützt.
 const AUTH_TOKEN = '1234';
 
+// Lang & Schwarz Instrument-IDs für den Intraday-Graphen.
+// Schlüssel = exakter Name aus dem Google Sheet (Spalte A in MSD_small_2026),
+// Wert = L&S instrumentId (z. B. '45389' für 'AT&S', oder '45389@1').
+const LS_INSTRUMENT_IDS = {
+  'AT&S': '45389'
+};
+
 
 // ============================================================
 // WEB-APP START
@@ -29,7 +36,15 @@ function doGet(e) {
         }))
         .setMimeType(ContentService.MimeType.JSON);
     }
-    const data = getDashboardData();
+    const action = e && e.parameter ? (e.parameter.action || '') : '';
+    let data;
+    if (action === 'intraday') {
+      const stockName = e.parameter.name || '';
+      const explicitId = e.parameter.id || '';
+      data = getLsIntradayData(stockName, explicitId);
+    } else {
+      data = getDashboardData();
+    }
     const jsonOutput = JSON.stringify(data);
     const callback = e && e.parameter ? e.parameter.callback : '';
 
@@ -232,11 +247,112 @@ function getDashboardData() {
 
     trendData: trendData,
 
+    lsIds: LS_INSTRUMENT_IDS,
+
     chartData:
       chartData
 
   };
 
+}
+
+// ============================================================
+// LANG & SCHWARZ INTRADAY-DATEN (JSON-RPC)
+// ============================================================
+
+function parseLsId_(rawId) {
+  const str = String(rawId || '').trim();
+  if (!str) return null;
+  const parts = str.split('@');
+  return {
+    instrumentId: parts[0].trim(),
+    marketId: (parts[1] || '1').trim()
+  };
+}
+
+function getLsIntradayData(name, explicitId) {
+  const rawId = explicitId || (name && LS_INSTRUMENT_IDS[name]) || '';
+  const parsed = parseLsId_(rawId);
+
+  if (!parsed || !parsed.instrumentId) {
+    return {
+      ok: false,
+      configured: false,
+      name: name || '',
+      error: 'Keine L&S-ID für "' + (name || '') + '" in LS_INSTRUMENT_IDS hinterlegt.'
+    };
+  }
+
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'ls_intraday_' + parsed.instrumentId + '_' + parsed.marketId;
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    try {
+      const parsedCache = JSON.parse(cached);
+      parsedCache.name = name || parsedCache.name || '';
+      parsedCache.cached = true;
+      return parsedCache;
+    } catch (e) {
+      // Cache ignorieren falls korrupt
+    }
+  }
+
+  const url = 'https://www.ls-tc.de/_rpc/json/instrument/chart/dataForInstrument'
+    + '?instrumentId=' + encodeURIComponent(parsed.instrumentId)
+    + '&marketId=' + encodeURIComponent(parsed.marketId)
+    + '&quotetype=mid&series=intraday&localeId=1';
+
+  const response = UrlFetchApp.fetch(url, {
+    method: 'get',
+    muteHttpExceptions: true,
+    headers: {
+      'User-Agent': 'Mozilla/5.0'
+    }
+  });
+
+  if (response.getResponseCode() !== 200) {
+    return {
+      ok: false,
+      configured: true,
+      name: name || '',
+      instrumentId: parsed.instrumentId,
+      error: 'L&S HTTP-Fehler ' + response.getResponseCode()
+    };
+  }
+
+  const json = JSON.parse(response.getContentText());
+  const points = (json.series && json.series.intraday && json.series.intraday.data) || [];
+  let previousDay = null;
+  if (json.info && Array.isArray(json.info.plotlines)) {
+    for (let i = 0; i < json.info.plotlines.length; i++) {
+      if (json.info.plotlines[i].id === 'previousDay') {
+        previousDay = Number(json.info.plotlines[i].value);
+        break;
+      }
+    }
+  }
+
+  const lastPoint = points.length ? points[points.length - 1] : null;
+  const result = {
+    ok: true,
+    configured: true,
+    name: name || '',
+    instrumentId: parsed.instrumentId,
+    marketId: parsed.marketId,
+    isin: (json.info && json.info.isin) || '',
+    previousDay: isNaN(previousDay) ? null : previousDay,
+    currentPrice: lastPoint ? Number(lastPoint[1]) : null,
+    lastTimestamp: lastPoint ? Number(lastPoint[0]) : null,
+    points: points
+  };
+
+  try {
+    cache.put(cacheKey, JSON.stringify(result), 20);
+  } catch (e) {
+    // Cache-Limit ignorieren falls Serie sehr groß
+  }
+
+  return result;
 }
 
 

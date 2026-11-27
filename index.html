@@ -1943,7 +1943,7 @@
           </div>
           <div class="menu-info-row">
             <span>App-Version</span>
-            <strong id="appVersionDisplay" class="font-tabular">V0.17</strong>
+            <strong id="appVersionDisplay" class="font-tabular">V0.18</strong>
           </div>
           <div class="menu-info-row">
             <span>Backend</span>
@@ -2605,7 +2605,7 @@ function formatClockTime(tsMs) {
   if (!tsMs) return "–";
   const d = new Date(Number(tsMs));
   if (isNaN(d.getTime())) return "–";
-  return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+  return ("0" + d.getUTCHours()).slice(-2) + ":" + ("0" + d.getUTCMinutes()).slice(-2);
 }
 
 function renderIntradayStockPicker(ytdData, lsIds) {
@@ -2630,11 +2630,9 @@ function renderIntradayStockPicker(ytdData, lsIds) {
 
   picker.innerHTML = items.map(function(item) {
     const hasLs = Boolean(intradayLsIds[item.name]);
-    const ytdVal = Number(item.value) || 0;
-    const dotColor = ytdVal >= 0 ? "#53faa2" : "#ff5169";
     const isSelected = item.name === selectedIntradayStockName;
     return '<button type="button" class="trend-stock-option' + (isSelected ? ' is-selected' : '') + (hasLs ? '' : ' is-unconfigured') + '" data-intraday-name="' + escapeHtml(item.name) + '" aria-pressed="' + (isSelected ? 'true' : 'false') + '">' +
-      '<span class="trend-stock-dot" style="background:' + dotColor + '"></span>' +
+      '<span class="trend-stock-dot" style="background:rgba(255,255,255,0.45)"></span>' +
       '<span class="trend-stock-option-name">' + escapeHtml(item.name) + '</span>' +
       (hasLs ? '<span class="intraday-ls-tag">L&amp;S</span>' : '<span class="trend-stock-option-total neutral">–</span>') +
     '</button>';
@@ -2650,6 +2648,32 @@ function renderIntradayStockPicker(ytdData, lsIds) {
 
   updateIntradayPickerSelection();
   loadIntradaySeries(selectedIntradayStockName, true);
+
+  // Dots aller konfigurierten Aktien im Hintergrund laden
+  items.forEach(function(item) {
+    if (!intradayLsIds[item.name]) return;
+    if (item.name === selectedIntradayStockName) return; // wird schon geladen
+    fetchIntradayDotColor(item.name);
+  });
+}
+
+function fetchIntradayDotColor(stockName) {
+  if (!currentAuthToken || !stockName) return;
+  const url = APPS_SCRIPT_URL + "?action=intraday&name=" + encodeURIComponent(stockName) + "&t=" + Date.now() + "&token=" + encodeURIComponent(currentAuthToken);
+  fetch(url, { method: "GET", cache: "no-store" })
+    .then(function(res) { return res.json(); })
+    .then(function(data) { updateIntradayDotColor(stockName, data); })
+    .catch(function() {});
+}
+
+function updateIntradayDotColor(stockName, data) {
+  const button = document.querySelector("#intradayStockPicker [data-intraday-name=\"" + stockName.replace(/"/g, '\\"') + "\"]");
+  if (!button) return;
+  const dot = button.querySelector(".trend-stock-dot");
+  if (!dot) return;
+  if (!data || !data.ok || data.currentPrice === null || data.previousDay === null) return;
+  const diff = Number(data.currentPrice) - Number(data.previousDay);
+  dot.style.background = diff > 0 ? "#53faa2" : diff < 0 ? "#ff5169" : "rgba(255,255,255,0.45)";
 }
 
 function updateIntradayPickerSelection() {
@@ -2694,6 +2718,7 @@ function loadIntradaySeries(stockName, isBackgroundRefresh) {
     .then(function(data) {
       if (reqId !== intradayRequestId) return;
       renderIntradaySeriesChart(data);
+      updateIntradayDotColor(stockName, data);
     })
     .catch(function(err) {
       if (reqId !== intradayRequestId) return;

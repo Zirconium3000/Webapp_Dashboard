@@ -15,7 +15,20 @@ const AUTH_TOKEN = '1234';
 // Schlüssel = exakter Name aus dem Google Sheet (Spalte A in MSD_small_2026),
 // Wert = L&S instrumentId (z. B. '45389' für 'AT&S', oder '45389@1').
 const LS_INSTRUMENT_IDS = {
-  'AT&S': '45389'
+  'Andritz AG': '55763',
+  'AT & S AG': '45389',
+  'BAWAG':'515132',
+  'EuroTeleSites':'3043854',
+  'MSCI India':'688546',
+  'Mercedes':'34361',
+  'Novo Nordisk':'3031857',
+  'Marvell':'1449099',
+  'Pensana PLC':'1594669',
+  'Rheinmetall':'34223',
+  'SAP':'34313',
+  'tonies SE':'1456078',
+  'VIG':'49385',
+  'Wienerberger':'44408',
 };
 
 
@@ -355,6 +368,15 @@ function getLsIntradayData(name, explicitId) {
   return result;
 }
 
+function autorisierungTest() {
+  // Externen Zugriff auf Lang & Schwarz autorisieren
+  UrlFetchApp.fetch('https://www.google.com');
+
+  // Zugriff auf dein Google Sheet autorisieren
+  SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  Logger.log('Autorisierung erfolgreich');
+}
 
 
 

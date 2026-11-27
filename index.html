@@ -937,7 +937,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 7px;
+      margin-bottom: 0;
     }
 
     .menu-trigger-btn {
@@ -1498,9 +1498,9 @@
     <header class="header">
 
       <div class="header-top-row">
-        <div class="header-small">
+        <h1 class="header-title">
           LIVE DASHBOARD
-        </div>
+        </h1>
         <button id="openMenuBtn" class="menu-trigger-btn" aria-label="Menü & Einstellungen öffnen" title="Menü & Einstellungen">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="4" y1="7" x2="20" y2="7"></line>
@@ -1509,14 +1509,6 @@
           </svg>
           <span id="menuAuthBadge" class="menu-auth-badge" title="Authentifizierungsstatus"></span>
         </button>
-      </div>
-
-      <h1 class="header-title">
-        Overview
-      </h1>
-
-      <div class="header-subtitle">
-        Aktuelle Werte aus Google Sheets
       </div>
 
     </header>
@@ -1919,7 +1911,7 @@
           </div>
           <div class="menu-info-row">
             <span>App-Version</span>
-            <strong id="appVersionDisplay" class="font-tabular">V0.15</strong>
+            <strong id="appVersionDisplay" class="font-tabular">V0.16</strong>
           </div>
           <div class="menu-info-row">
             <span>Backend</span>
